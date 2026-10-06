@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07060f">
+<title>North Star</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+/* Layout: one-screen arcade cabinet. Game canvas centered on a dark field, touch pad underneath on phones. */
+:root{
+  --bg:#07060f;
+  --fg:#f3ead8;
+  --accent:#ffcc33;
+  --dim:#7a7199;
+  --pad:#1b1730;
+  --pad-edge:#3a3260;
+  --font-pixel:"Press Start 2P", ui-monospace, "Courier New", monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--fg);font-family:var(--font-pixel);
+  margin:0;padding-inline:16px;padding-block:16px;box-sizing:border-box;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+}
+.stage{position:relative;line-height:0;max-width:100%;box-shadow:0 0 0 3px #000,0 0 0 5px var(--pad-edge),0 18px 50px rgba(0,0,0,.65)}
+canvas{display:block;max-width:100%;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;cursor:pointer}
+.crt{position:absolute;inset:0;pointer-events:none;
+  background:
+    repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.2) 2px 3px),
+    radial-gradient(ellipse at center,rgba(0,0,0,0) 62%,rgba(0,0,0,.45) 100%)}
+.hint{font-size:9px;letter-spacing:.08em;color:var(--dim);text-align:center;line-height:1.8}
+.hint b{color:var(--accent);font-weight:400}
+.pad{display:none;width:100%;max-width:520px;justify-content:space-between;align-items:center;gap:12px;touch-action:none}
+.pad .dir{display:flex;gap:12px}
+.pad button{
+  font:inherit;font-size:11px;color:var(--fg);background:var(--pad);
+  border:2px solid var(--pad-edge);border-bottom-width:5px;border-radius:10px;
+  width:68px;height:62px;display:grid;place-items:center;touch-action:none;padding:0;
+}
+.pad button.jump{width:96px;background:#3a1f2a;border-color:#e8413c;color:var(--accent)}
+.pad button.on{transform:translateY(2px);border-bottom-width:3px;filter:brightness(1.3)}
+.pad svg{width:22px;height:22px;fill:currentColor}
+@media (pointer:coarse){.pad{display:flex}.hint{display:none}}
+</style>
+</head>
+<body>
+
+<div class="stage"><canvas id="game" width="320" height="192" aria-label="North Star game screen"></canvas><div class="crt"></div></div>
+<div class="hint"><b>← →</b> OR <b>A D</b> MOVE &nbsp;·&nbsp; <b>SPACE</b> JUMP &nbsp;·&nbsp; <b>ENTER</b> START</div>
+<div class="pad">
+  <div class="dir">
+    <button id="btn-left" data-k="left" aria-label="Move left"><svg viewBox="0 0 10 10"><path d="M7 1 2 5l5 4z"/></svg></button>
+    <button id="btn-right" data-k="right" aria-label="Move right"><svg viewBox="0 0 10 10"><path d="M3 1l5 4-5 4z"/></svg></button>
+  </div>
+  <button id="btn-jump" class="jump" data-k="jump" aria-label="Jump">JUMP</button>
+</div>
+
+<script>
+(() => {
+"use strict";
+const W = 320, H = 192, T = 16, ROWS = 12;
+const cv = document.getElementById('game');
+const ctx = cv.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+const FONT = '"Press Start 2P", ui-monospace, monospace';
+const TOUCH = matchMedia('(pointer:coarse)').matches;
+document.fonts && document.fonts.load('8px "Press Start 2P"').catch(() => {});
+
+/* ---------------- sizing ---------------- */
+const pad = document.querySelector('.pad'), hint = document.querySelector('.hint');
+function resize() {
+  const extra = (pad.offsetParent ? pad.offsetHeight + 14 : 0) + (hint.offsetParent ? hint.offsetHeight + 14 : 0);
+  const availW = document.body.clientWidth - 32 - 10;
+  const availH = window.innerHeight - extra - 32 - 10;
+  let s = Math.min(availW / W, availH / H);
+  if (s >= 2) s = Math.floor(s);
+  s = Math.max(s, 0.5);
+  cv.style.width = Math.round(W * s) + 'px';
+  cv.style.height = Math.round(H * s) + 'px';
+}
+addEventListener('resize', resize);
+resize();
+
+/* ---------------- helpers ---------------- */
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rnd = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
+const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+const pad2 = n => String(n).padStart(2, '0');
+function text(s, x, y, col = '#f3ead8', size = 8, align = 'left', shadow = '#000') {
+  ctx.font = size + 'px ' + FONT; ctx.textAlign = align; ctx.textBaseline = 'top';
+  if (shadow) { ctx.fillStyle = shadow; ctx.fillText(s, x + 1, y + 1); }
+  ctx.fillStyle = col; ctx.fillText(s, x, y);
+}
+function rect(col, x, y, w, h) { ctx.fillStyle = col; ctx.fillRect(x, y, w, h); }
+
+/* ---------------- audio ---------------- */
+let ac = null;
+function audioOn() {
+  if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
+  if (ac && ac.state === 'suspended') ac.resume();
+}
+function tone(f1, f2, dur, type = 'square', vol = 0.06, delay = 0) {
+  if (!ac) return;
+  const t0 = ac.currentTime + delay, o = ac.createOscillator(), g = ac.createGain();
+  o.type = type; o.frequency.setValueAtTime(f1, t0);
+  if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+  g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g).connect(ac.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+}
+const sfx = {
+  jump: () => tone(260, 560, 0.12, 'square', 0.045),
+  coin: () => { tone(988, null, 0.07, 'square', 0.045); tone(1319, null, 0.2, 'square', 0.045, 0.07); },
+  star: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, null, 0.12, 'triangle', 0.09, i * 0.06)),
+  key: () => [392, 523, 659, 880, 1047].forEach((f, i) => tone(f, null, 0.1, 'square', 0.045, i * 0.06)),
+  stomp: () => tone(240, 70, 0.14, 'square', 0.06),
+  bump: () => tone(150, 110, 0.06, 'square', 0.05),
+  hurt: () => tone(440, 55, 0.7, 'sawtooth', 0.06),
+  locked: () => { tone(140, null, 0.08, 'square', 0.06); tone(140, null, 0.08, 'square', 0.06, 0.13); },
+  clear: () => [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tone(f, null, 0.15, 'square', 0.05, i * 0.1)),
+};
+
+/* ---------------- sprites ---------------- */
+function sprite(rows, pal) {
+  const c = document.createElement('canvas'); c.width = rows[0].length; c.height = rows.length;
+  const x = c.getContext('2d');
+  rows.forEach((r, j) => [...r].forEach((ch, i) => { if (pal[ch]) { x.fillStyle = pal[ch]; x.fillRect(i, j, 1, 1); } }));
+  return c;
+}
+const HERO = { R: '#e8413c', r: '#a62a2f', S: '#c98a5b', s: '#93603e', E: '#1a1020', H: '#2fb3a5', h: '#1e7f78', P: '#2b2f5c', W: '#f4f1e8', w: '#9aa0b5' };
+const TOP = [
+  '...RRRRR....',
+  '..RRRRRRRRR.',
+  '..SSSSSS....',
+  '..SSSSES....',
+  '..SSSSSS....',
+  '...sSSS.....',
+  '..HHHHHH....',
+  '.HHHHHHHH...',
+  '.HHhHHHHSS..',
+  '.SHHHHHHh...',
+  '..HHHHHH....',
+];
+const LEGS = {
+  idle: ['..PPPPPP....', '..PP..PP....', '..PP..PP....', '.WWW..WWW...', '.www..www...'],
+  run1: ['..PPPPPP....', '.PPP..PPP...', 'PP......PP..', 'WW.......WW.', 'ww.......ww.'],
+  run2: ['..PPPPPP....', '...PPPP.....', '...PPPP.....', '..WWWWW.....', '..wwwww.....'],
+  jump: ['..PPPPPP....', '.PP...PPP...', '.PP.....WW..', 'WWW.....ww..', 'www.........'],
+};
+const SPR = {};
+for (const k in LEGS) SPR[k] = sprite(TOP.concat(LEGS[k]), HERO);
+const RAT = { G: '#8a87a0', g: '#5a5770', N: '#ff8fb1', E: '#0b0b12', e: '#ff8fb1' };
+SPR.rat1 = sprite(['....ee........', '...GGGGG......', '..GGGGGGGG....', '.EGGGGGGGGG...', 'NGGGGGGGGGGGNN', '.gGGGGGGGGGg.N', '..gggggggggg.N', '..N.N....N.N..'], RAT);
+SPR.rat2 = sprite(['....ee........', '...GGGGG......', '..GGGGGGGG....', '.EGGGGGGGGG...', 'NGGGGGGGGGGG..', '.gGGGGGGGGGgNN', '..gggggggggg..', '...N.N..N.N...'], RAT);
+const NSTAR = ['.....Y.....', '.....Y.....', '....YYY....', '....YWY....', '..YYYWYYY..', 'YYYYWWWYYYY', '..YYYWYYY..', '....YWY....', '....YYY....', '.....Y.....', '.....Y.....'];
+const MSTAR = ['...Y...', '...Y...', '..YWY..', 'YYWWWYY', '..YWY..', '...Y...', '...Y...'];
+SPR.star = sprite(NSTAR, { Y: '#ffd84a', W: '#fffbe0' });
+SPR.bigStar = sprite(NSTAR, { Y: '#fffbe0', W: '#ffffff' });
+SPR.mstar = sprite(MSTAR, { Y: '#ffd84a', W: '#fffbe0' });
+SPR.mstarOff = sprite(MSTAR, { Y: '#3a3358', W: '#4a4370' });
+SPR.key = sprite(['CCCCCCCCCCCC', 'CggCCCCCCCCC', 'CggCCccccCCC', 'CCCCCCCCCCCC', 'CCCCCccccccC', 'CCCCCCCCCCCC', 'cccccccccccc'], { C: '#3ee6ff', c: '#178aa8', g: '#ffcc33' });
+SPR.heart = sprite(['.RR.RR.', 'RRRRRRR', 'RRRRRRR', '.RRRRR.', '..RRR..', '...R...'], { R: '#e8413c' });
+
+/* ---------------- tiles per theme ---------------- */
+const THEMES = {
+  fremont: { walk: '#b8927a', walkHi: '#e0bfa0', walkLine: '#7d5a48', curb: '#ffcc33', asphalt: '#2a1a22', speck: '#3f2a33', mortar: '#3a1a1e', brick: '#a64b3c', brickHi: '#c9654f' },
+  arts: { walk: '#9fb0a8', walkHi: '#cfe0d6', walkLine: '#6f817a', curb: '#4b5a55', asphalt: '#1f2426', speck: '#323b3e', mortar: '#2e2220', brick: '#7d5640', brickHi: '#a0704f' },
+  strip: { walk: '#8f86b0', walkHi: '#3ee6ff', walkLine: '#6a6290', curb: '#ff3fa4', asphalt: '#17122b', speck: '#2a2245', mortar: '#1e1430', brick: '#5b3a8a', brickHi: '#7d55b5' },
+};
+const PLANKS = {
+  fremont: R => { R('#7a4e0a', 0, 0, 16, 6); R('#ffcc33', 0, 0, 16, 1); R('#c98f12', 0, 5, 16, 1); for (let i = 1; i < 16; i += 4) R('#fff2a8', i, 2, 2, 2); },
+  arts: R => { R('#9a6a3e', 0, 0, 16, 2); R('#5a3a20', 0, 2, 16, 1); R('#9a6a3e', 0, 3, 16, 2); R('#3e2814', 0, 5, 16, 1); R('#3e2814', 0, 0, 1, 6); R('#3e2814', 8, 0, 1, 6); },
+  strip: R => { R('#3ee6ff', 0, 0, 16, 1); R('#1a1530', 0, 1, 16, 4); R('#ff3fa4', 0, 5, 16, 1); for (let i = 1; i < 16; i += 4) R('#fff2a8', i, 3, 1, 1); },
+};
+const DOLLAR = ['..D..', '.DDDD', 'D.D..', '.DDD.', '..D.D', 'DDDD.', '..D..'];
+function makeTiles(name) {
+  const C = THEMES[name];
+  const mk = fn => { const c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d'); fn((col, a, b, w, h) => { x.fillStyle = col; x.fillRect(a, b, w, h); }); return c; };
+  return {
+    top: mk(R => { R(C.asphalt, 0, 0, 16, 16); R(C.walk, 0, 0, 16, 4); R(C.walkHi, 0, 0, 16, 1); R(C.walkLine, 7, 1, 1, 3); R(C.curb, 0, 4, 16, 2); for (let i = 0; i < 6; i++) R(C.speck, (i * 7 + 3) % 15, 8 + (i * 5) % 7, 1, 1); }),
+    fill: mk(R => { R(C.asphalt, 0, 0, 16, 16); for (let i = 0; i < 7; i++) R(C.speck, (i * 9 + 2) % 15, (i * 5 + 1) % 15, 1, 1); }),
+    brick: mk(R => { R(C.mortar, 0, 0, 16, 16); for (let r = 0; r < 4; r++) { const off = r % 2 ? 4 : 0; for (let k = -1; k < 2; k++) { const bx = k * 8 + off; R(C.brick, bx + 1, r * 4 + 1, 7, 3); R(C.brickHi, bx + 1, r * 4 + 1, 7, 1); } } }),
+    cash: mk(R => {
+      R('#7a4e0a', 0, 0, 16, 16); R('#ffcc33', 1, 1, 14, 14); R('#ffe58a', 1, 1, 14, 1); R('#ffe58a', 1, 1, 1, 14);
+      R('#c98f12', 1, 14, 14, 1); R('#c98f12', 14, 1, 1, 14);
+      [[2, 2], [13, 2], [2, 13], [13, 13]].forEach(([a, b]) => R('#7a4e0a', a, b, 1, 1));
+      DOLLAR.forEach((row, j) => [...row].forEach((ch, i) => { if (ch === 'D') R('#7a4e0a', 6 + i, 4 + j, 1, 1); }));
+    }),
+    used: mk(R => { R('#2a2638', 0, 0, 16, 16); R('#4a4560', 1, 1, 14, 14); R('#5d5878', 1, 1, 14, 1); [[2, 2], [13, 2], [2, 13], [13, 13]].forEach(([a, b]) => R('#2a2638', a, b, 1, 1)); }),
+    plank: mk(PLANKS[name]),
+  };
+}
+const TILES = { fremont: makeTiles('fremont'), arts: makeTiles('arts'), strip: makeTiles('strip') };
+
+/* ---------------- levels ----------------
+   Grid is 12 rows. Rows 10-11 are the street. Player stands on row 9.
+   '#' street  'B' brick  '?' cash block  '-' awning (jump up through it)  */
+function mk(w, name, theme) {
+  const g = []; for (let y = 0; y < ROWS; y++) g.push(Array(w).fill('.'));
+  const L = { w, name, theme, g, coins: [], stars: [], key: null, door: null, enemies: [], start: { x: 2, y: 9 } };
+  const api = {
+    ground: (a, b) => { for (let x = a; x <= b; x++) { g[10][x] = '#'; g[11][x] = '#'; } },
+    row: (x, y, s) => [...s].forEach((c, i) => { if (c !== ' ') g[y][x + i] = c; }),
+    plat: (x, y, n) => { for (let i = 0; i < n; i++) g[y][x + i] = '-'; },
+    col: (x, top) => { for (let y = top; y <= 9; y++) g[y][x] = 'B'; },
+    coins: (x, y, n) => { for (let i = 0; i < n; i++) L.coins.push({ x: x + i, y }); },
+    coin: (x, y) => L.coins.push({ x, y }),
+    star: (x, y) => L.stars.push({ x, y }),
+    key: (x, y) => { L.key = { x, y }; },
+    door: x => { L.door = { x }; },
+    enemy: x => L.enemies.push({ x }),
+  };
+  return [L, api];
+}
+const LEVELS = [
+  () => {
+    const [L, { ground, row, plat, col, coins, coin, star, key, door, enemy }] = mk(120, 'FREMONT ST', 'fremont');
+    ground(0, 24); ground(28, 52); ground(56, 80); ground(83, 119);
+    coins(5, 9, 4);
+    row(10, 6, '?B?B?'); coins(11, 5, 3);
+    plat(16, 7, 4); coins(16, 6, 4); enemy(19);
+    coin(25, 6); coin(26, 5); coin(27, 6);
+    plat(30, 7, 3); plat(33, 4, 4); star(35, 3);
+    enemy(40);
+    col(44, 9); col(45, 8); col(46, 7); col(47, 6); coin(46, 6); coin(47, 5); star(47, 3);
+    coin(53, 6); coin(54, 5); coin(55, 6);
+    enemy(61); enemy(67);
+    plat(63, 8, 3); plat(68, 5, 4); key(70, 4);
+    row(74, 6, 'B?B');
+    enemy(90); enemy(95);
+    col(100, 7); col(101, 7); plat(104, 4, 3); star(105, 3);
+    coins(107, 9, 5);
+    door(115);
+    return L;
+  },
+  () => {
+    const [L, { ground, row, plat, col, coins, coin, star, key, door, enemy }] = mk(130, 'ARTS DISTRICT', 'arts');
+    ground(0, 20); ground(24, 45); ground(49, 70); ground(74, 90); ground(94, 129);
+    coins(4, 9, 4);
+    row(9, 6, '?B?'); enemy(15);
+    plat(13, 7, 3); plat(17, 4, 3); star(18, 3);
+    coin(21, 6); coin(22, 5); coin(23, 6);
+    col(30, 8); col(31, 7); coin(31, 6); coin(30, 7);
+    enemy(35); enemy(41);
+    plat(38, 7, 4); coins(38, 6, 4);
+    coin(46, 6); coin(47, 5); coin(48, 6);
+    plat(52, 7, 3); plat(56, 4, 3); key(57, 3);
+    enemy(60); enemy(66); row(62, 6, 'B??B');
+    col(78, 7); col(79, 7); plat(82, 4, 3); star(83, 3);
+    enemy(86);
+    enemy(100); enemy(106);
+    plat(103, 7, 3); plat(107, 4, 3); star(108, 3);
+    coins(112, 9, 5);
+    door(125);
+    return L;
+  },
+  () => {
+    const [L, { ground, row, plat, col, coins, coin, star, key, door, enemy }] = mk(140, 'THE STRIP', 'strip');
+    ground(0, 18); ground(22, 40); ground(45, 60); ground(64, 66); ground(70, 95); ground(99, 139);
+    coins(4, 9, 3);
+    row(8, 6, 'B??B'); enemy(14);
+    plat(19, 7, 3); coins(19, 6, 3);
+    plat(26, 7, 3); plat(30, 4, 3); star(31, 3);
+    enemy(28); enemy(35);
+    col(38, 8); col(39, 7); col(40, 6); coin(42, 5); coin(43, 5);
+    enemy(50); enemy(56); row(52, 6, '?B?');
+    coins(64, 9, 3); plat(67, 7, 2); star(68, 6);
+    plat(72, 7, 3); plat(76, 4, 3); key(77, 3);
+    enemy(80); enemy(86); enemy(91); row(84, 6, 'B?B?B');
+    col(103, 8); col(104, 8); plat(107, 5, 3); star(108, 4);
+    enemy(112); enemy(118); enemy(124);
+    plat(115, 8, 6); coins(115, 7, 6);
+    door(134);
+    return L;
+  },
+];
+
+/* ---------------- game state ---------------- */
+let state = 'title', levelIndex = 0, lv = null, p = null, cam = 0, t = 0, stateT = 0;
+let lives = 3, totals = { coins: 0, stars: 0 };
+let particles = [], floats = [], bumps = [], lockCooldown = 0;
+const keys = { left: false, right: false, jump: false };
+let jumpPressed = false, startPressed = false;
+
+function loadLevel(i) {
+  lv = LEVELS[i]();
+  lv.coins.forEach(c => c.got = false);
+  lv.stars.forEach(s => s.got = false);
+  lv.coinsTotal = lv.coins.length + lv.g.flat().filter(c => c === '?').length;
+  lv.coinsGot = 0; lv.starsGot = 0; lv.hasKey = false;
+  spawn();
+}
+function spawn() {
+  p = { x: lv.start.x * T + 3, y: lv.start.y * T + 1, w: 10, h: 15, vx: 0, vy: 0, onGround: false, face: 1, coyote: 0, buffer: 0, anim: 0, inv: 0 };
+  lv.enemies.forEach(e => { e.w = 14; e.h = 8; e.px = e.x * T + 1; e.py = 10 * T - 8; e.dir = -1; e.vy = 0; e.dead = false; e.deadT = 0; e.active = false; });
+  cam = clamp(p.x - W * 0.42, 0, lv.w * T - W);
+  particles = []; floats = [];
+}
+function startGame() {
+  lives = 3; totals = { coins: 0, stars: 0 }; levelIndex = 0;
+  loadLevel(0); setState('intro');
+}
+function setState(s) { state = s; stateT = 0; jumpPressed = false; startPressed = false; }
+
+/* ---------------- tiles & collision ---------------- */
+const SOLID = new Set(['#', 'B', '?', 'U']);
+function tileAt(tx, ty) {
+  if (tx < 0 || tx >= lv.w) return 'B';
+  if (ty < 0 || ty >= ROWS) return '.';
+  return lv.g[ty][tx];
+}
+function moveX(e, dx, bx = 'x') {
+  e[bx] += dx;
+  const x = e[bx], y = e[bx === 'x' ? 'y' : 'py'];
+  const top = Math.floor(y / T), bot = Math.floor((y + e.h - 1) / T);
+  if (dx > 0) {
+    const tx = Math.floor((x + e.w - 1) / T);
+    for (let ty = top; ty <= bot; ty++) if (SOLID.has(tileAt(tx, ty))) { e[bx] = tx * T - e.w; return true; }
+  } else if (dx < 0) {
+    const tx = Math.floor(x / T);
+    for (let ty = top; ty <= bot; ty++) if (SOLID.has(tileAt(tx, ty))) { e[bx] = (tx + 1) * T; return true; }
+  }
+  return false;
+}
+function moveY(e, dy, isPlayer) {
+  const xk = isPlayer ? 'x' : 'px', yk = isPlayer ? 'y' : 'py';
+  const prevBottom = e[yk] + e.h;
+  e[yk] += dy;
+  e.onGround = false;
+  const l = Math.floor(e[xk] / T), r = Math.floor((e[xk] + e.w - 1) / T);
+  if (dy > 0) {
+    const ty = Math.floor((e[yk] + e.h - 1) / T);
+    for (let tx = l; tx <= r; tx++) {
+      const c = tileAt(tx, ty);
+      if (SOLID.has(c) || (c === '-' && prevBottom <= ty * T + 0.5)) { e[yk] = ty * T - e.h; e.vy = 0; e.onGround = true; return; }
+    }
+  } else if (dy < 0) {
+    const ty = Math.floor(e[yk] / T);
+    const mid = Math.floor((e[xk] + e.w / 2) / T);
+    const order = [mid, l, r];
+    for (const tx of order) {
+      if (SOLID.has(tileAt(tx, ty))) {
+        e[yk] = (ty + 1) * T; e.vy = 0;
+        if (isPlayer) bump(tx, ty);
+        return;
+      }
+    }
+  }
+}
+function bump(tx, ty) {
+  const c = tileAt(tx, ty);
+  bumps.push({ tx, ty, t: 0 });
+  if (c === '?') {
+    lv.g[ty][tx] = 'U'; lv.coinsGot++; sfx.coin();
+    floats.push({ s: '+1', x: tx * T + 8, y: ty * T - 6, life: 0.7, col: '#ffcc33' });
+    burst(tx * T + 8, ty * T - 4, '#ffcc33', 8);
+  } else sfx.bump();
+}
+function burst(x, y, col, n) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, s = 40 + Math.random() * 70;
+    particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 40, life: 0.5 + Math.random() * 0.3, col });
+  }
+}
+
+/* ---------------- update ---------------- */
+const ACC_G = 900, ACC_A = 650, FRIC = 1100, MAXV = 118, GRAV = 1400, JUMP = 425, MAXF = 420;
+const doorReady = () => lv.hasKey && lv.starsGot >= 3;
+function die() {
+  if (state !== 'play') return;
+  sfx.hurt(); p.vy = -320; p.vx = 0; setState('dead');
+}
+function updatePlay(dt) {
+  const dir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+  if (dir) {
+    p.vx += dir * (p.onGround ? ACC_G : ACC_A) * dt; p.face = dir;
+    if (p.onGround && Math.sign(p.vx) !== dir) p.vx += dir * FRIC * 0.5 * dt;
+  } else if (p.onGround) {
+    const f = FRIC * dt; p.vx = Math.abs(p.vx) <= f ? 0 : p.vx - Math.sign(p.vx) * f;
+  }
+  p.vx = clamp(p.vx, -MAXV, MAXV);
+  p.coyote = p.onGround ? 0.09 : p.coyote - dt;
+  p.buffer -= dt;
+  if (jumpPressed) { p.buffer = 0.11; jumpPressed = false; }
+  if (p.buffer > 0 && p.coyote > 0) { p.vy = -JUMP; p.buffer = 0; p.coyote = 0; p.onGround = false; sfx.jump(); }
+  if (!keys.jump && p.vy < -160) p.vy = -160;
+  p.vy = Math.min(p.vy + GRAV * dt, MAXF);
+  if (moveX(p, p.vx * dt)) p.vx = 0;
+  moveY(p, p.vy * dt, true);
+  p.anim += Math.abs(p.vx) * dt;
+  if (p.inv > 0) p.inv -= dt;
+  if (p.y > H + 8) { die(); return; }
+
+  // enemies
+  for (const e of lv.enemies) {
+    if (e.dead) { e.deadT += dt; continue; }
+    if (!e.active) { if (e.px < cam + W + 24) e.active = true; else continue; }
+    e.vy = Math.min(e.vy + GRAV * dt, MAXF);
+    if (moveX(e, e.dir * 28 * dt, 'px')) e.dir *= -1;
+    moveY(e, e.vy * dt, false);
+    if (e.onGround) {
+      const ax = e.dir > 0 ? e.px + e.w + 1 : e.px - 1;
+      const below = tileAt(Math.floor(ax / T), Math.floor((e.py + e.h + 1) / T));
+      if (!SOLID.has(below) && below !== '-') e.dir *= -1;
+    }
+    const box = { x: e.px, y: e.py, w: e.w, h: e.h };
+    if (p.inv <= 0 && overlap(p, box)) {
+      if (p.vy > 0 && (p.y + p.h) - e.py < 9) {
+        e.dead = true; e.deadT = 0; p.vy = keys.jump ? -400 : -280; sfx.stomp();
+        burst(e.px + 7, e.py + 4, '#cfc3e0', 6);
+        floats.push({ s: 'STOMP', x: e.px + 7, y: e.py - 10, life: 0.6, col: '#f3ead8' });
+      } else { die(); return; }
+    }
+  }
+  lv.enemies = lv.enemies.filter(e => !(e.dead && e.deadT > 0.5)) ;
+
+  // pickups
+  for (const c of lv.coins) if (!c.got && overlap(p, { x: c.x * T + 3, y: c.y * T + 2, w: 10, h: 12 })) {
+    c.got = true; lv.coinsGot++; sfx.coin(); burst(c.x * T + 8, c.y * T + 8, '#ffcc33', 5);
+  }
+  for (const s of lv.stars) if (!s.got && overlap(p, { x: s.x * T + 2, y: s.y * T + 2, w: 12, h: 12 })) {
+    s.got = true; lv.starsGot++; sfx.star(); burst(s.x * T + 8, s.y * T + 8, '#fff2a8', 14);
+    floats.push({ s: 'STAR ' + lv.starsGot + '/3', x: s.x * T + 8, y: s.y * T - 6, life: 1.1, col: '#ffd84a' });
+  }
+  if (lv.key && !lv.hasKey && overlap(p, { x: lv.key.x * T + 2, y: lv.key.y * T + 3, w: 12, h: 10 })) {
+    lv.hasKey = true; sfx.key(); burst(lv.key.x * T + 8, lv.key.y * T + 8, '#3ee6ff', 16);
+    floats.push({ s: 'KEY CARD!', x: lv.key.x * T + 8, y: lv.key.y * T - 8, life: 1.4, col: '#3ee6ff' });
+  }
+  lockCooldown -= dt;
+  const d = lv.door;
+  if (overlap(p, { x: d.x * T + 3, y: 8 * T, w: 10, h: 32 })) {
+    if (doorReady()) { sfx.clear(); totals.coins += lv.coinsGot; totals.stars += lv.starsGot; setState('clear'); }
+    else if (lockCooldown <= 0) {
+      sfx.locked(); lockCooldown = 1.8;
+      const left = 3 - lv.starsGot, need = [];
+      if (left > 0) need.push(left + (left === 1 ? ' STAR' : ' STARS'));
+      if (!lv.hasKey) need.push('KEY CARD');
+      floats.push({ s: 'NEED ' + need.join(' + '), x: d.x * T + 8, y: 8 * T - 26, life: 1.7, col: '#ff6b6b' });
+    }
+  }
+  const target = p.x + p.w / 2 - W * 0.42;
+  cam += (target - cam) * Math.min(1, dt * 8);
+  cam = clamp(cam, 0, lv.w * T - W);
+}
+function updateFx(dt) {
+  for (const q of particles) { q.vy += 500 * dt; q.x += q.vx * dt; q.y += q.vy * dt; q.life -= dt; }
+  particles = particles.filter(q => q.life > 0);
+  for (const f of floats) { f.y -= 22 * dt; f.life -= dt; }
+  floats = floats.filter(f => f.life > 0);
+  for (const b of bumps) b.t += dt;
+  bumps = bumps.filter(b => b.t < 0.15);
+}
+function update(dt) {
+  t += dt; stateT += dt;
+  if (state === 'title') { cam = (t * 30) % (120 * T - W); if (startPressed) startGame(); }
+  else if (state === 'intro') { if (stateT > 1.6 || (startPressed && stateT > 0.3)) setState('play'); }
+  else if (state === 'play') { startPressed = false; updatePlay(dt); }
+  else if (state === 'dead') {
+    p.vy = Math.min(p.vy + GRAV * 0.7 * dt, MAXF); p.y += p.vy * dt;
+    if (stateT > 1.5) {
+      lives--;
+      if (lives <= 0) setState('over');
+      else { spawn(); p.inv = 1.2; setState('play'); }
+    }
+  }
+  else if (state === 'clear') {
+    if (startPressed && stateT > 0.6) {
+      if (levelIndex + 1 < LEVELS.length) { levelIndex++; loadLevel(levelIndex); setState('intro'); }
+      else setState('win');
+    }
+  }
+  else if (state === 'over' || state === 'win') { if (startPressed && stateT > 0.8) setState('title'); }
+  if (state !== 'title') updateFx(dt);
+}
+
+/* ---------------- backgrounds ---------------- */
+const SKY_STARS = Array.from({ length: 60 }, (_, i) => ({ x: Math.floor(rnd(i, 1) * W), y: Math.floor(rnd(i, 2) * 110), p: rnd(i, 3) * 6 }));
+function skyline(off, slot, col, win, seed, lit, minH, varH) {
+  for (let i = Math.floor(off / slot) - 1; i <= Math.floor((off + W) / slot) + 1; i++) {
+    const bw = 22 + Math.floor(rnd(i, seed) * 16), bh = minH + Math.floor(rnd(i, seed + 1) * varH);
+    const x = Math.round(i * slot - off), y = 160 - bh;
+    rect(col, x, y, bw, bh);
+    if (seed === 9) { rect(i % 2 ? '#ff3fa4' : '#3ee6ff', x, y, bw, 1); rect(i % 2 ? '#ff3fa4' : '#3ee6ff', x, y, 1, bh); }
+    ctx.fillStyle = win;
+    for (let r = 0, wy = y + 4; wy < 154; r++, wy += 6)
+      for (let c = 0, wx = x + 3; wx < x + bw - 3; c++, wx += 5)
+        if (rnd(i * 131 + c, r * 17 + seed) < lit) ctx.fillRect(wx, wy, 2, 3);
+  }
+}
+const wrapIdx = (i, n) => ((i % n) + n) % n;
+function mountains(off, col, base, amp, seed) {
+  ctx.fillStyle = col;
+  for (let x = 0; x < W; x += 2) {
+    const wx = x + off;
+    const h = Math.round(base - amp * (0.55 + 0.25 * Math.sin(wx * 0.011 + seed) + 0.2 * Math.sin(wx * 0.037 + seed * 2)));
+    ctx.fillRect(x, h, 2, 160 - h);
+  }
+}
+function needle(x, col) {
+  rect(col, x, 44, 6, 116); rect(col, x - 7, 34, 20, 10); rect(col, x - 4, 30, 14, 4); rect(col, x + 2, 12, 2, 18);
+  if (Math.floor(t * 1.5) % 2) rect('#ff3b3b', x + 2, 11, 2, 2);
+}
+function neonSign(x, y, word, neon, i) {
+  const bw = word.length * 8 + 14;
+  rect('#0d0a1c', x + Math.round(bw / 2) - 2, y + 30, 4, 160 - y - 30);
+  rect('#1a0f2e', x, y, bw, 30);
+  rect(neon, x, y, bw, 1); rect(neon, x, y + 29, bw, 1); rect(neon, x, y, 1, 30); rect(neon, x + bw - 1, y, 1, 30);
+  const phase = Math.floor(t * 6);
+  for (let k = 0, bx = x + 3; bx < x + bw - 3; k++, bx += 4) { rect((k + phase) % 2 ? '#fff2a8' : '#6b4f2a', bx, y + 3, 2, 2); rect((k + phase + 1) % 2 ? '#fff2a8' : '#6b4f2a', bx, y + 25, 2, 2); }
+  const on = (Math.floor(t * 1.5 + i) % 5) !== 0;
+  text(word, x + Math.round(bw / 2), y + 11, on ? neon : '#3a2a4a', 8, 'center', null);
+}
+const NEONS = ['#ff3fa4', '#3ee6ff', '#ffcc33', '#4dff7a'];
+
+/* Level 1: Fremont Street. LED canopy overhead, old casino facades and blade signs underneath. */
+const FREMONT_WORDS = ['SLOTS', 'HOTEL', 'KENO', 'LOANS', 'CASINO', 'BINGO', 'WEDDINGS'];
+const BLADE_WORDS = ['BAR', 'GIFTS', 'LIVE', 'CAFE', 'DEALS', 'OPEN'];
+function bgFremont(cx) {
+  rect('#0a0618', 0, 0, W, H);
+  const off = cx * 0.45, slot = 112;
+  for (let i = Math.floor(off / slot) - 1; i <= Math.floor((off + W) / slot) + 1; i++) {
+    const x = Math.round(i * slot - off), bw = 104;
+    rect(i % 2 ? '#1c1030' : '#24122a', x, 40, bw, 120);
+    ctx.fillStyle = '#3a2440';
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 6; c++) if (rnd(i * 31 + c, r) < 0.5) ctx.fillRect(x + 36 + c * 10, 86 + r * 8, 5, 4);
+    const word = FREMONT_WORDS[wrapIdx(i, FREMONT_WORDS.length)], neon = NEONS[wrapIdx(i, 4)];
+    const sw = word.length * 8 + 10, sx = x + 64 - Math.round(sw / 2) + 4;
+    rect('#120a1e', sx, 52, sw, 16); rect(neon, sx, 52, sw, 1); rect(neon, sx, 67, sw, 1);
+    const on = (Math.floor(t * 2 + i) % 7) !== 0;
+    text(word, sx + Math.round(sw / 2), 56, on ? neon : '#3a2a4a', 8, 'center', null);
+    const blade = BLADE_WORDS[wrapIdx(i, BLADE_WORDS.length)], bn = NEONS[wrapIdx(i + 1, 4)];
+    const bh = blade.length * 11 + 6, bx0 = x + 8, by0 = 46;
+    rect('#120a1e', bx0, by0, 14, bh); rect(bn, bx0, by0, 14, 1); rect(bn, bx0, by0 + bh - 1, 14, 1); rect(bn, bx0, by0, 1, bh); rect(bn, bx0 + 13, by0, 1, bh);
+    [...blade].forEach((ch, j) => text(ch, bx0 + 7, by0 + 4 + j * 11, (Math.floor(t * 4) + j) % 9 ? bn : '#3a2a4a', 8, 'center', null));
+    rect('#3a1c10', x, 116, bw, 9);
+    const ph = Math.floor(t * 8);
+    for (let k = 0, bx = x + 2; bx < x + bw - 2; k++, bx += 4) rect((k + ph) % 3 ? '#ffcc33' : '#6b4f2a', bx, 119, 2, 2);
+    rect('#0d0814', x + 40, 132, 40, 28);
+    ctx.globalAlpha = 0.35; rect('#ffb36b', x + 42, 134, 36, 26); ctx.globalAlpha = 1;
+  }
+  rect('#05030c', 0, 0, W, 38);
+  const co = cx * 0.5;
+  for (let y = 3; y < 34; y += 3) {
+    for (let x = -(Math.floor(co) % 4); x < W; x += 4) {
+      const wx = x + co;
+      const hue = ((wx * 0.7 + y * 5 - t * 120) % 360 + 360) % 360;
+      ctx.fillStyle = 'hsl(' + Math.round(hue) + ',90%,' + Math.round(48 + 14 * Math.sin(wx * 0.05 + t * 3)) + '%)';
+      ctx.fillRect(x, y, 2, 2);
+    }
+  }
+  for (let k = Math.floor(co / 64) - 1; k <= Math.floor((co + W) / 64) + 1; k++) rect('#2a2438', Math.round(k * 64 - co), 0, 3, 40);
+  rect('#2a2438', 0, 34, W, 3); rect('#140f20', 0, 37, W, 2);
+}
+
+/* Level 2: Arts District. Dusk over the Spring Mountains, mural-painted warehouses, string lights. */
+const MURAL = ['#ff6b6b', '#ffd166', '#06d6a0', '#118ab2', '#ef476f', '#f78c6b'];
+const BULBS = ['#ffd166', '#ff6b6b', '#06d6a0', '#fff2a8'];
+function bgArts(cx) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#1b2550'); g.addColorStop(0.55, '#6b3f6e'); g.addColorStop(0.85, '#e07a5f'); g.addColorStop(1, '#f2b880');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  mountains(cx * 0.06, '#5e3352', 120, 44, 1);
+  skyline(cx * 0.14, 30, '#3a2550', '#ffcf7a', 4, 0.08, 18, 40);
+  needle(Math.round(250 - cx * 0.14), '#3a2550');
+  const off = cx * 0.4, slot = 124, wall = '#3a2a30';
+  for (let i = Math.floor(off / slot) - 1; i <= Math.floor((off + W) / slot) + 1; i++) {
+    const x = Math.round(i * slot - off), bw = 108, bh = 52 + Math.floor(rnd(i, 7) * 26), y = 160 - bh;
+    rect(wall, x, y, bw, bh);
+    for (let s = 0; s < bw; s += 18) for (let j = 0; j < 9; j++) rect(wall, x + s, y - j - 1, 18 - j * 2, 1);
+    const m0 = MURAL[wrapIdx(i, 6)], m1 = MURAL[wrapIdx(i + 2, 6)], m2 = MURAL[wrapIdx(i + 4, 6)];
+    const mx = x + 6, my = y + 8, mw = bw - 12, mh = bh - 14;
+    rect(m0, mx, my, mw, mh);
+    for (let k = 0; k < mw; k += 2) rect(m1, mx + k, my + Math.floor((k * 0.6 + i * 7) % (mh - 4)), 2, 4);
+    const ccx = mx + 20 + Math.floor(rnd(i, 8) * (mw - 40)), ccy = my + Math.floor(mh / 2), cr = 9;
+    for (let r = -cr; r <= cr; r++) { const hw = Math.round(Math.sqrt(cr * cr - r * r)); rect(m2, ccx - hw, ccy + r, hw * 2, 1); }
+    ctx.globalAlpha = 0.38; rect('#1b1030', mx, my, mw, mh); ctx.globalAlpha = 1;
+    if (wrapIdx(i, 3) === 0) { rect('#2a1f2a', x + bw - 32, y - 34, 20, 14); rect('#2a1f2a', x + bw - 30, y - 20, 2, 12); rect('#2a1f2a', x + bw - 16, y - 20, 2, 12); rect('#2a1f2a', x + bw - 34, y - 36, 24, 3); }
+  }
+  const lo = cx * 0.6, span = 84;
+  for (let i = Math.floor(lo / span) - 1; i <= Math.floor((lo + W) / span) + 1; i++) {
+    const x = Math.round(i * span - lo);
+    rect('#1a1418', x, 58, 2, 102);
+    for (let s = 4, k = 0; s < span; s += 6, k++) {
+      const yy = Math.round(60 + Math.sin(Math.PI * s / span) * 14);
+      rect('#1a1418', x + s, yy - 1, 6, 1);
+      ctx.globalAlpha = (Math.floor(t * 3) + k + i) % 11 ? 1 : 0.3;
+      rect(BULBS[(k + i) % 4], x + s, yy, 2, 2);
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+
+/* Level 3: The Strip. Night sky, desert ridge, neon towers, big marquee signs. */
+const STRIP_WORDS = ['LUCKY', 'OPEN 24', 'CHAPEL', 'MOTEL', 'JACKPOT'];
+function bgStrip(cx) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#05040f'); g.addColorStop(0.65, '#150a30'); g.addColorStop(1, '#40104a');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#fff2d8';
+  for (const s of SKY_STARS) { ctx.globalAlpha = 0.35 + 0.35 * Math.sin(t * 2 + s.p); ctx.fillRect(s.x, s.y, 1, 1); }
+  ctx.globalAlpha = 1;
+  mountains(cx * 0.05, '#1c1230', 128, 34, 3);
+  needle(Math.round(60 - cx * 0.1 + 2200 * 0.1), '#140e28');
+  skyline(cx * 0.18, 56, '#110c24', '#ff9bd2', 9, 0.1, 60, 70);
+  const off = cx * 0.45, slot = 150;
+  for (let i = Math.floor(off / slot) - 1; i <= Math.floor((off + W) / slot) + 1; i++)
+    neonSign(Math.round(i * slot - off + 30), 62, STRIP_WORDS[wrapIdx(i, STRIP_WORDS.length)], i % 2 ? '#3ee6ff' : '#ff3fa4', i);
+}
+const BG = { fremont: bgFremont, arts: bgArts, strip: bgStrip };
+
+/* ---------------- render ---------------- */
+function drawCoin(x, y, ph) {
+  const w = Math.max(2, Math.round(Math.abs(Math.cos(t * 3 + ph)) * 8)), l = Math.round(x + 8 - w / 2);
+  rect('#c98f12', l, y + 3, w, 10);
+  if (w > 2) rect('#ffcc33', l + 1, y + 2, w - 2, 12);
+  if (w > 5) { rect('#fff2a8', l + 2, y + 4, 1, 6); rect('#c98f12', l + w - 2, y + 3, 1, 10); }
+}
+function glow(x, y, r, col, a) {
+  ctx.globalAlpha = a; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+}
+function drawWorld() {
+  const cx = Math.round(cam);
+  BG[lv.theme](cx);
+  ctx.save(); ctx.translate(-cx, 0);
+  const tl = TILES[lv.theme];
+  const x0 = Math.floor(cx / T), x1 = Math.min(lv.w - 1, x0 + Math.ceil(W / T) + 1);
+  for (let ty = 0; ty < ROWS; ty++) for (let tx = x0; tx <= x1; tx++) {
+    const c = lv.g[ty][tx]; if (c === '.') continue;
+    let img = null;
+    if (c === '#') img = ty > 0 && lv.g[ty - 1][tx] === '#' ? tl.fill : tl.top;
+    else if (c === 'B') img = tl.brick; else if (c === '?') img = tl.cash; else if (c === 'U') img = tl.used; else if (c === '-') img = tl.plank;
+    if (!img) continue;
+    const b = bumps.find(q => q.tx === tx && q.ty === ty);
+    ctx.drawImage(img, tx * T, ty * T - (b ? Math.round(Math.sin(b.t / 0.15 * Math.PI) * 4) : 0));
+  }
+  // door
+  const d = lv.door, dx = d.x * T, dy = 8 * T;
+  rect('#06240f', dx - 8, dy - 13, 32, 10);
+  glow(dx + 8, dy - 8, 14, '#4dff7a', 0.12);
+  text('EXIT', dx + 8, dy - 12, '#4dff7a', 8, 'center', null);
+  rect('#1a1726', dx - 1, dy - 2, 18, 34);
+  rect('#5a6178', dx + 1, dy, 14, 32);
+  rect('#6f7690', dx + 1, dy, 14, 1);
+  rect('#474d63', dx + 7, dy + 2, 1, 28);
+  rect('#222', dx + 11, dy + 13, 3, 6);
+  rect(doorReady() ? '#4dff7a' : (Math.floor(t * 3) % 2 ? '#ff3b3b' : '#7a1a1a'), dx + 12, dy + 14, 1, 2);
+  // pickups
+  lv.coins.forEach((c, i) => { if (!c.got) drawCoin(c.x * T, c.y * T, i * 0.6); });
+  lv.stars.forEach((s, i) => {
+    if (s.got) return;
+    const bob = Math.round(Math.sin(t * 3 + i) * 2);
+    glow(s.x * T + 8, s.y * T + 8 + bob, 10, '#fff2a8', 0.18 + 0.08 * Math.sin(t * 5));
+    ctx.drawImage(SPR.star, s.x * T + 2, s.y * T + 3 + bob);
+  });
+  if (lv.key && !lv.hasKey) {
+    const bob = Math.round(Math.sin(t * 2.5) * 2);
+    glow(lv.key.x * T + 8, lv.key.y * T + 8 + bob, 11, '#3ee6ff', 0.2 + 0.1 * Math.sin(t * 6));
+    ctx.drawImage(SPR.key, lv.key.x * T + 2, lv.key.y * T + 5 + bob);
+  }
+  // enemies
+  for (const e of lv.enemies) {
+    const img = Math.floor(t * 6) % 2 ? SPR.rat1 : SPR.rat2;
+    const ex = Math.round(e.px), ey = Math.round(e.py);
+    if (e.dead) { ctx.drawImage(img, 0, 0, 14, 8, ex, ey + 5, 14, 3); continue; }
+    if (e.dir > 0) { ctx.save(); ctx.translate(ex + 14, ey); ctx.scale(-1, 1); ctx.drawImage(img, 0, 0); ctx.restore(); }
+    else ctx.drawImage(img, ex, ey);
+  }
+  // player
+  if (!(p.inv > 0 && Math.floor(t * 20) % 2)) {
+    let img = SPR.idle;
+    if (state === 'dead' || !p.onGround) img = SPR.jump;
+    else if (Math.abs(p.vx) > 8) img = Math.floor(p.anim / 10) % 2 ? SPR.run1 : SPR.run2;
+    const px = Math.round(p.x) - 1, py = Math.round(p.y) - 1;
+    if (p.face < 0) { ctx.save(); ctx.translate(px + 12, py); ctx.scale(-1, 1); ctx.drawImage(img, 0, 0); ctx.restore(); }
+    else ctx.drawImage(img, px, py);
+  }
+  for (const q of particles) { ctx.globalAlpha = Math.min(1, q.life * 2); rect(q.col, Math.round(q.x), Math.round(q.y), 2, 2); }
+  ctx.globalAlpha = 1;
+  for (const f of floats) { ctx.globalAlpha = Math.min(1, f.life * 2); text(f.s, Math.round(f.x), Math.round(f.y), f.col, 8, 'center'); }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+function hud() {
+  rect('rgba(5,4,15,.6)', 0, 0, W, 17);
+  drawCoin(-2, 1, 0);
+  text('x' + pad2(lv.coinsGot), 14, 5);
+  for (let i = 0; i < 3; i++) ctx.drawImage(i < lv.starsGot ? SPR.mstar : SPR.mstarOff, 52 + i * 10, 5);
+  ctx.globalAlpha = lv.hasKey ? 1 : 0.25; ctx.drawImage(SPR.key, 88, 5); ctx.globalAlpha = 1;
+  text(lv.name, 192, 5, '#cfc3e0', 8, 'center');
+  ctx.drawImage(SPR.heart, 278, 5);
+  text('x' + lives, 288, 5);
+}
+function panel(x, y, w, h, edge = '#ffcc33') {
+  rect('#000', x + 3, y + 3, w, h);
+  rect(edge, x, y, w, h);
+  rect('#100c22', x + 2, y + 2, w - 4, h - 4);
+}
+const blink = () => Math.floor(t * 2.5) % 2 === 0;
+function render() {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  if (state === 'title') {
+    bgFremont(Math.round(cam));
+    ctx.save(); ctx.translate(-Math.round(cam), 0);
+    const x0 = Math.floor(cam / T);
+    for (let tx = x0; tx <= x0 + 21; tx++) { ctx.drawImage(TILES.fremont.top, tx * T, 10 * T); ctx.drawImage(TILES.fremont.fill, tx * T, 11 * T); }
+    ctx.restore();
+    const hx = 40, hy = 160 - 16 - Math.round(Math.abs(Math.sin(t * 4)) * 10);
+    ctx.drawImage(Math.abs(Math.sin(t * 4)) > 0.2 ? SPR.jump : (Math.floor(t * 10) % 2 ? SPR.run1 : SPR.run2), hx, hy);
+    rect('rgba(5,4,15,.68)', 0, 0, W, H);
+    glow(W / 2, 30, 18 + Math.sin(t * 3) * 2, '#fff2a8', 0.22);
+    ctx.drawImage(SPR.bigStar, 0, 0, 11, 11, W / 2 - 11, 19, 22, 22);
+    text('NORTH STAR', W / 2 + 2, 50 + 2, '#e8413c', 24, 'center', null);
+    text('NORTH STAR', W / 2, 50, '#ffcc33', 24, 'center', '#3a1030');
+    text('3 STARS + KEY CARD = EXIT', W / 2, 86, '#f3ead8', 8, 'center');
+    ctx.drawImage(SPR.mstar, 120, 102); ctx.drawImage(SPR.key, 154, 102); drawCoin(186, 98, 0);
+    if (blink()) text(TOUCH ? 'TAP JUMP TO START' : 'PRESS ENTER', W / 2, 124, '#3ee6ff', 8, 'center');
+    text('FREMONT > ARTS > STRIP', W / 2, 142, '#cfc3e0', 8, 'center');
+    return;
+  }
+  drawWorld();
+  hud();
+  if (state === 'intro') {
+    rect('rgba(5,4,15,.7)', 0, 0, W, H);
+    text('LEVEL ' + (levelIndex + 1), W / 2, 68, '#a99bc2', 8, 'center');
+    text(lv.name, W / 2, 84, '#ffcc33', 16, 'center');
+    text('3 STARS + KEY CARD', W / 2, 112, '#3ee6ff', 8, 'center');
+    text('OPEN THE EXIT', W / 2, 126, '#a99bc2', 8, 'center');
+  } else if (state === 'clear') {
+    panel(60, 46, 200, 100);
+    text('LEVEL CLEAR', W / 2, 58, '#4dff7a', 16, 'center');
+    text('COINS  ' + pad2(lv.coinsGot) + ' / ' + pad2(lv.coinsTotal), W / 2, 86, '#ffcc33', 8, 'center');
+    text('STARS   ' + lv.starsGot + ' / 3', W / 2, 100, '#ffd84a', 8, 'center');
+    if (blink() && stateT > 0.6) text(levelIndex + 1 < LEVELS.length ? 'JUMP FOR NEXT LEVEL' : 'JUMP TO FINISH', W / 2, 124, '#3ee6ff', 8, 'center');
+  } else if (state === 'over') {
+    rect('rgba(5,4,15,.75)', 0, 0, W, H);
+    text('GAME OVER', W / 2, 76, '#e8413c', 16, 'center');
+    if (blink() && stateT > 0.8) text('PRESS JUMP', W / 2, 108, '#f3ead8', 8, 'center');
+  } else if (state === 'win') {
+    panel(40, 40, 240, 112, '#4dff7a');
+    text('VEGAS CLEARED', W / 2, 54, '#ffcc33', 16, 'center');
+    text('TOTAL COINS  ' + totals.coins, W / 2, 84, '#ffcc33', 8, 'center');
+    text('TOTAL STARS  ' + totals.stars + ' / ' + LEVELS.length * 3, W / 2, 98, '#ffd84a', 8, 'center');
+    if (blink() && stateT > 0.8) text('PRESS JUMP', W / 2, 128, '#3ee6ff', 8, 'center');
+  }
+}
+
+/* ---------------- input ---------------- */
+const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'jump', ArrowUp: 'jump', KeyW: 'jump', KeyZ: 'jump' };
+addEventListener('keydown', e => {
+  const k = KEYMAP[e.code];
+  if (k || e.code === 'Enter') e.preventDefault();
+  audioOn();
+  if (e.repeat) return;
+  if (k) { keys[k] = true; if (k === 'jump') jumpPressed = true; }
+  if (k === 'jump' || e.code === 'Enter') startPressed = true;
+});
+addEventListener('keyup', e => { const k = KEYMAP[e.code]; if (k) keys[k] = false; });
+addEventListener('blur', () => { keys.left = keys.right = keys.jump = false; });
+document.querySelectorAll('.pad button').forEach(b => {
+  const k = b.dataset.k;
+  const down = e => { e.preventDefault(); audioOn(); keys[k] = true; b.classList.add('on'); if (k === 'jump') { jumpPressed = true; startPressed = true; } };
+  const up = e => { e.preventDefault(); keys[k] = false; b.classList.remove('on'); };
+  b.addEventListener('pointerdown', down);
+  b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('pointerleave', up);
+  b.addEventListener('contextmenu', e => e.preventDefault());
+});
+cv.addEventListener('pointerdown', () => { audioOn(); if (state !== 'play') startPressed = true; });
+
+/* ---------------- loop ---------------- */
+let last = performance.now(), acc = 0;
+const STEP = 1 / 60;
+function frame(now) {
+  acc += Math.min(0.1, (now - last) / 1000); last = now;
+  while (acc >= STEP) { update(STEP); acc -= STEP; }
+  render();
+  requestAnimationFrame(frame);
+}
+function boot(data) {
+  if (data && data.inGame) { lives = data.lives; totals = data.totals; levelIndex = data.levelIndex; loadLevel(levelIndex); setState('intro'); }
+  else loadLevel(0);
+  requestAnimationFrame(t0 => { last = t0; requestAnimationFrame(frame); });
+}
+const hot = window.claude && window.claude.hot;
+if (hot && hot.snapshot) hot.snapshot(() => ({ inGame: state !== 'title' && state !== 'over' && state !== 'win', levelIndex, lives, totals }));
+if (hot && hot.ready) hot.ready(boot); else boot((hot && hot.data) || {});
+})();
+</script>
+</body>
+</html>
