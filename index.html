@@ -256,17 +256,17 @@ const LEVELS = [
     ground(0, 91);
     coins(4, 9, 4);
     row(9, 5, '?B?');
-    plat(14, 7, 4); coins(14, 6, 4); enemy(17);
+    plat(14, 6, 4); coins(14, 5, 4); enemy(17);
     plat(19, 4, 3); star(20, 3);
     col(26, 8); col(27, 7); coin(27, 6);
     enemy(31); row(34, 5, 'B?B'); shades(35, 4); enemy(38);
-    plat(41, 7, 3); plat(45, 4, 3); star(46, 3);
+    plat(41, 6, 3); plat(45, 4, 3); star(46, 3);
     enemy(50);
     col(56, 7); col(57, 7);
     plat(60, 4, 3); key(61, 3);
     enemy(63); coins(64, 9, 4); enemy(69);
-    plat(70, 7, 3); plat(74, 4, 3); star(75, 3);
-    plat(79, 7, 2); record(79, 6);
+    plat(70, 6, 3); plat(74, 4, 3); star(75, 3);
+    plat(79, 6, 2); record(79, 5);
     enemy(83);
     door(88);
     return L;
@@ -280,14 +280,14 @@ const LEVELS = [
     ground(0, 24); ground(28, 52); ground(56, 80); ground(83, 119);
     coins(5, 9, 4);
     row(10, 5, '?B?B?'); coins(11, 4, 3);
-    plat(16, 7, 4); coins(16, 6, 4); enemy(19);
+    plat(16, 6, 4); coins(16, 5, 4); enemy(19);
     coin(25, 6); coin(26, 5); coin(27, 6);
-    plat(30, 7, 3); plat(33, 4, 4); star(35, 3);
+    plat(30, 6, 3); plat(33, 4, 4); star(35, 3);
     enemy(40);
     col(44, 9); col(45, 8); col(46, 7); col(47, 6); coin(46, 6); coin(47, 5);
     coin(53, 6); coin(54, 5); coin(55, 6);
     enemy(61); enemy(67);
-    plat(63, 8, 3); shades(64, 7); plat(68, 5, 4); coins(69, 4, 2);
+    plat(63, 6, 3); shades(64, 5); plat(68, 4, 4); coins(69, 3, 2);
     row(74, 5, 'B?B');
     safe(86); enemy(90); enemy(95);
     col(100, 7); col(101, 7); plat(104, 4, 3); coins(104, 3, 3);
@@ -296,18 +296,18 @@ const LEVELS = [
     ground(0, 20); ground(24, 45); ground(49, 70); ground(74, 90); ground(94, 129);
     coins(4, 9, 4);
     row(9, 5, '?B?'); enemy(15);
-    plat(13, 7, 3); plat(17, 4, 3); star(18, 3);
+    plat(13, 6, 3); plat(17, 4, 3); star(18, 3);
     coin(21, 6); coin(22, 5); coin(23, 6);
     col(30, 8); col(31, 7); coin(31, 6); coin(30, 7); record(31, 5);
     enemy(35); enemy(41);
-    plat(38, 7, 4); coins(38, 6, 4);
+    plat(38, 6, 4); coins(38, 5, 4);
     coin(46, 6); coin(47, 5); coin(48, 6);
-    plat(52, 7, 3); plat(56, 4, 3); key(57, 3);
+    plat(52, 6, 3); plat(56, 4, 3); key(57, 3);
     enemy(60); enemy(66); row(62, 5, 'B??B');
     col(78, 7); col(79, 7); plat(82, 4, 3); coins(82, 3, 3);
     enemy(86);
     safe(96); enemy(100); enemy(106);
-    plat(103, 7, 3); plat(107, 4, 3); star(108, 3);
+    plat(103, 6, 3); plat(107, 4, 3); star(108, 3);
     coins(112, 9, 5);
     door(125);
     return L;
@@ -319,20 +319,20 @@ const LEVELS = [
     coins(3, 9, 4);
     row(8, 5, '?B?B');
     enemy(13); enemy(19);
-    plat(16, 7, 3); plat(20, 4, 3); star(21, 3);
+    plat(16, 6, 3); plat(20, 4, 3); star(21, 3);
     coin(23, 6); coin(24, 5); coin(25, 6);
     safe(30);
     enemy(34); enemy(42);
     col(38, 8); col(39, 7); coin(39, 6);
-    plat(44, 7, 3); coins(44, 6, 3);
-    coins(52, 9, 3); plat(55, 7, 2); star(56, 6);
+    plat(44, 6, 3); coins(44, 5, 3);
+    coins(52, 9, 3); plat(55, 6, 2); star(56, 5);
     enemy(62); enemy(70);
-    row(64, 5, 'B??B'); plat(66, 3, 3); key(67, 2);
+    plat(61, 6, 2); row(64, 5, 'B??B'); plat(66, 3, 3); key(67, 2);
     shades(74, 9);
     col(88, 7); col(89, 7); plat(92, 4, 3); star(93, 3);
     enemy(96); enemy(102); enemy(108);
     safe(105);
-    plat(111, 7, 3); record(112, 6);
+    plat(111, 6, 3); record(112, 5);
     coins(115, 9, 6);
     door(125);
     return L;
@@ -341,42 +341,47 @@ const LEVELS = [
     const [L, { ground, row, plat, col, coins, coin, star, key, door, enemy, record, shades, safe }] = mk(140, 'THE STRIP', 'strip');
     L.intro = ['THE CROWD IS WITH YOU', '3 STARS + KEY CARD', 'LAST STOP BEFORE THE HQ'];
     ground(0, 18); ground(22, 40); ground(45, 60); ground(64, 66); ground(70, 95); ground(99, 139);
-    coins(4, 9, 3); row(8, 5, 'B??B'); enemy(14);
-    plat(19, 7, 3); coins(19, 6, 3);
-    plat(26, 7, 3); plat(30, 4, 3); star(31, 3);
+    coins(4, 9, 3); plat(5, 6, 2); row(8, 5, 'B??B'); enemy(14);
+    plat(19, 6, 3); coins(19, 5, 3);
+    plat(26, 6, 3); plat(30, 4, 3); star(31, 3);
     enemy(28); enemy(35);
     col(38, 8); col(39, 7); col(40, 6); coin(42, 5); coin(43, 5);
-    safe(48); enemy(50); enemy(56); row(52, 5, '?B?'); shades(53, 4);
-    coins(64, 9, 3); plat(67, 7, 2); star(68, 6);
-    plat(72, 7, 3); plat(76, 4, 3); key(77, 3);
-    enemy(80); enemy(86); enemy(91); row(84, 5, 'B?B?B');
+    safe(48); enemy(50); enemy(56); plat(49, 6, 2); row(52, 5, '?B?'); shades(53, 4);
+    coins(64, 9, 3); plat(67, 6, 2); star(68, 5);
+    plat(72, 6, 3); plat(76, 4, 3); key(77, 3);
+    enemy(80); enemy(86); enemy(91); plat(81, 6, 2); row(84, 5, 'B?B?B');
     col(103, 8); col(104, 8); plat(107, 5, 3); star(108, 4);
     enemy(112); enemy(118); enemy(124);
-    plat(115, 8, 6); coins(115, 7, 6); record(118, 6);
+    plat(115, 6, 6); coins(115, 5, 6); record(118, 4);
     safe(130);
     door(134);
     addCrowd(L, 3, 132, 7);
     return L;
   },
-  () => climbLevel(),
+  () => climbLevel(0),
+  () => climbLevel(1),
 ];
 
 /* ---------------- level 5: the penthouse climb ---------------- */
 const CLIMB_H = 384;
-function climbLevel() {
+function climbLevel(stage) {
   const F = [370, 310, 250, 190, 130, 70];
-  const slabs = [
+  let slabs = [
     { x0: 0, x1: 320, y: F[0] }, { x0: 0, x1: 292, y: F[1] }, { x0: 28, x1: 320, y: F[2] },
     { x0: 0, x1: 292, y: F[3] }, { x0: 28, x1: 320, y: F[4] }, { x0: 0, x1: 292, y: F[5] },
   ];
-  const lx = [40, 260, 50, 250, 60];
-  const ladders = lx.map((x, i) => ({ x, top: F[i + 1], bottom: F[i] }));
+  let lx = [260, 50, 250, 60, 250], start = 16, bossX = 30, range = [6, 120], elevTop = 22, dir = 1, crowd = [70, 92, 114, 136, 158, 180, 202];
+  if (stage) {   // part 2 is the mirror image: he's waiting on the right this time
+    slabs = slabs.map(s => ({ x0: 320 - s.x1, x1: 320 - s.x0, y: s.y }));
+    lx = lx.map(x => 320 - x - 12); start = 290; bossX = 262; range = [190, 292]; elevTop = 298; dir = -1; crowd = crowd.map(x => 320 - x);
+  }
   return {
-    kind: 'climb', name: 'THE PENTHOUSE', theme: 'strip', w: 20, slabs, ladders,
-    intro: ['CLIMB TO THE TOP', 'JUMP AT A LADDER TO CLIMB', 'STOMP THE CEO 3 TIMES'],
-    boss: { x: 30, dir: 1, hp: 3, hurt: 0, throwT: 2.2, throwAnim: 0, thrown: false, dead: false, deadT: 0, kind: 0 },
-    rollers: [], start: { x: 284, y: F[0] },
-    crowd: [70, 92, 114, 136, 158, 180, 202].map((x, i) => ({ px: x, i })),
+    kind: 'climb', stage, name: stage ? 'THE TOP FLOOR' : 'THE PENTHOUSE', theme: 'strip', w: 20, slabs, elevTop,
+    ladders: lx.map((x, i) => ({ x, top: F[i + 1], bottom: F[i] })),
+    intro: stage ? ['HE TOOK THE ELEVATOR UP', 'CATCH HIM AT THE TOP', 'JUMP ON HIS HEAD TWICE'] : ['JUMP AT A LADDER TO CLIMB', 'DODGE WHAT HE THROWS', "JUMP ON THE CEO'S HEAD"],
+    boss: { x: bossX, dir, throwDir: dir, min: range[0], max: range[1], hp: stage ? 2 : 3, hurt: 0, safe: 0, throwT: 2.2, throwAnim: 0, thrown: false, dead: false, deadT: 0, flee: false, gone: false, goneT: 0, kind: 0 },
+    rollers: [], start: { x: start, y: F[0] }, hinted: false,
+    crowd: crowd.map((x, i) => ({ px: x, i })),
   };
 }
 
@@ -406,14 +411,14 @@ function spawn() {
     lv.enemies.forEach(e => { e.w = 16; e.h = 24; e.px = e.x * T; e.py = 10 * T - 24; e.dir = -1; e.vy = 0; e.dead = false; e.deadT = 0; e.active = false; });
     cam = clamp(p.x - W * 0.42, 0, lv.w * T - W);
   } else {
-    p.x = lv.start.x; p.y = lv.start.y - p.h; lv.rollers = [];
-    lv.boss.hurt = 0; lv.boss.throwT = 2.2; lv.boss.throwAnim = 0;
+    p.x = lv.start.x; p.y = lv.start.y - p.h; p.face = lv.stage ? -1 : 1; lv.rollers = [];
+    lv.boss.hurt = 0; lv.boss.safe = 0; lv.boss.throwT = 2.2; lv.boss.throwAnim = 0;
     camY = CLIMB_H - H;
   }
 }
 function startGame() {
-  lives = 3; continues = 2; coinBank = 0; totals = { coins: 0, stars: 0 }; masters = 0; levelIndex = 0; crawlPage = 0;
-  setState('crawl');
+  lives = 3; continues = 2; coinBank = 0; totals = { coins: 0, stars: 0 }; masters = 0; levelIndex = 0;
+  playSlides(SLIDES, () => { loadLevel(0); setState('intro'); });
 }
 function setState(s) { state = s; stateT = 0; jumpPressed = false; startPressed = false; }
 const themeAt = tx => (lv.theme2 && tx >= lv.split ? lv.theme2 : lv.theme);
@@ -617,31 +622,43 @@ function updateClimb(dt) {
   }
   timers(dt);
 
-  const b = L.boss;
-  if (!b.dead) {
-    b.hurt -= dt; b.throwT -= dt;
+  const b = L.boss, topY = L.slabs[5].y;
+  if (!L.hinted && p.onGround && Math.abs(p.y + p.h - topY) < 1) {
+    L.hinted = true; floats.push({ s: 'JUMP ON HIS HEAD!', x: 160, y: topY - 66, life: 2.4, col: '#3ee6ff' });
+  }
+  if (b.gone) {
+    b.goneT += dt;
+    if (b.goneT > 1.6) { levelIndex = 5; loadLevel(5); setState('intro'); return; }
+  } else if (b.flee) {   // part 1: one stomp and he runs for the elevator
+    const tx = L.elevTop - 14; b.dir = Math.sign(tx - b.x) || 1; b.x += b.dir * 150 * dt;
+    if (Math.abs(b.x - tx) < 4) { b.gone = true; sfx.locked(); }
+  } else if (!b.dead) {
+    b.hurt -= dt; b.safe -= dt; b.throwT -= dt;
     if (b.throwAnim > 0) {
       b.throwAnim -= dt;
       if (b.throwAnim < 0.25 && !b.thrown) {
         b.thrown = true; sfx.throw();
-        L.rollers.push({ x: b.x + 26, y: L.slabs[5].y - 13, w: 13, h: 13, vx: 48, vy: 0, air: 0, kind: b.kind++ % 2, rot: 0 });
+        L.rollers.push({ x: b.throwDir > 0 ? b.x + 26 : b.x - 12, y: topY - 13, w: 13, h: 13, vx: 50 * b.throwDir, vy: 0, air: 0, kind: b.kind++ % 2, rot: 0 });
       }
     } else if (b.hurt <= 0) {
-      b.x += b.dir * 30 * dt;
-      if (b.x < 6) b.dir = 1; if (b.x > 200) b.dir = -1;
-      if (b.throwT <= 0) { b.throwAnim = 0.5; b.thrown = false; b.dir = 1; b.throwT = [1.4, 1.9, 2.5][b.hp - 1]; }
+      b.x += b.dir * 32 * dt;
+      if (b.x < b.min) b.dir = 1; if (b.x > b.max) b.dir = -1;
+      if (b.throwT <= 0) { b.throwAnim = 0.5; b.thrown = false; b.throwT = (L.stage ? [1.2, 1.6] : [2.2, 2.2, 2.2])[b.hp - 1]; }
     }
     const bb = bossBox(b);
-    if (!p.climb && overlap(p, bb) && p.shades <= 0) {
-      if (p.vy > 0 && p.y + p.h - bb.y < 14 && b.hurt <= 0) {
-        b.hp--; b.hurt = 1.3; b.throwAnim = 0; p.vy = -300; sfx.stomp(); burst(bb.x + 9, bb.y + 4, '#ffffff', 14);
-        floats.push({ s: b.hp > 0 ? 'HIT! ' + b.hp + ' LEFT' : 'DOWN!', x: bb.x + 9, y: bb.y - 12, life: 1.2, col: '#ffcc33' });
-        if (b.hp <= 0) { b.dead = true; b.deadT = 0; L.rollers = []; masters++; sfx.clear(); floats.push({ s: 'MASTERS ' + masters + '/7', x: 160, y: bb.y - 26, life: 2, col: '#ffcc33' }); }
-      } else if (b.hurt <= 0 && p.inv <= 0) { die(); return; }
+    if (!p.climb && p.shades <= 0 && overlap(p, bb)) {
+      const stomp = p.vy > 0 && p.y + p.h - bb.y < 18;
+      if (stomp && b.hurt <= 0) {
+        b.hp--; b.hurt = 1.2; b.safe = 1.8; b.throwAnim = 0; p.vy = -330; p.airJumps = 1; sfx.stomp(); burst(bb.x + 9, bb.y + 4, '#ffffff', 14);
+        if (!L.stage) { b.flee = true; L.rollers = []; floats.push({ s: "YOU'LL NEVER CATCH ME!", x: clamp(bb.x + 9, 96, 224), y: bb.y - 14, life: 2.4, col: '#ff6b6b' }); }
+        else if (b.hp <= 0) { b.dead = true; b.deadT = 0; L.rollers = []; masters++; sfx.clear(); floats.push({ s: 'MASTERS ' + masters + '/7', x: 160, y: bb.y - 26, life: 2, col: '#ffcc33' }); }
+        else floats.push({ s: 'ONE MORE!', x: bb.x + 9, y: bb.y - 12, life: 1.2, col: '#ffcc33' });
+      } else if (!stomp && b.safe <= 0 && p.inv <= 0) { die(); return; }
+      else if (!stomp) { p.x = p.x + p.w / 2 < bb.x + bb.w / 2 ? bb.x - p.w : bb.x + bb.w; p.vx = 0; }   // still recovering: just shoves you aside
     }
   } else {
     b.deadT += dt;
-    if (b.deadT > 2.6) { totals.coins += lv.coinsGot; setState('deal'); dealPick = 0; return; }
+    if (b.deadT > 2.6) { totals.coins += lv.coinsGot; playSlides(PITCH_SLIDES, () => { setState('deal'); dealPick = 0; }); return; }
   }
 
   for (const r of L.rollers) {
@@ -676,14 +693,32 @@ const SLIDES = [
   { img: 'scene_open', pan: -1, text: 'THE STUDIO LOCKS FROM THE OUTSIDE. EVERY REAL ARTIST IN THE CITY IS LOCKED IN TOO.' },
   { img: 'bg_fremont', pan: 1, clones: true, text: "THE LABEL'S CLONES HAVE TAKEN THE STREETS. FIND THE ACCESS CARD. BREAK OUT." },
 ];
-const slideLen = i => SLIDES[i].text.length / 34 + 3.4;
+const BOSS_SLIDES = [
+  { img: 'scene_title', pan: 1, text: 'THE AL G RHYTHM RECORDS TOWER. MILES WALKS INTO THE LOBBY.' },
+  { img: 'scene_title', pan: -1, speaker: 'FRONT DESK', text: 'SIR, THE NORTH STAR IS HERE TO SEE YOU.' },
+  { img: 'scene_deal', pan: 1, speaker: 'THE CEO', rain: true, text: "SEND HIM UP. HE'LL NEVER MAKE IT TO THE TOP." },
+];
+const PITCH_SLIDES = [
+  { img: 'scene_deal', pan: 1, speaker: 'THE CEO', text: "OKAY, OKAY. LET ME SHOW YOU THE SYSTEM I'VE BEEN RUNNING." },
+  { img: 'scene_deal', pan: -1, speaker: 'THE CEO', rain: true, text: 'HERE IS YOUR PERCENTAGE. JUST SIGN THE CONTRACT AND WE WORK EVERYTHING OUT.' },
+];
+const SIGNED_SLIDES = [
+  { img: 'scene_deal', pan: 1, speaker: 'THE CEO', text: 'YOU FOOL! WHERE ARE YOUR LAWYERS? NOW YOUR NAME IS ON IT.' },
+  { img: 'scene_deal', pan: -1, speaker: 'THE CEO', red: true, text: "YOU'LL NEVER GET OUT OF THIS CONTRACT." },
+];
+let slideSet = SLIDES, slideDone = () => {};
+function playSlides(set, done) { slideSet = set; slideDone = done; crawlPage = 0; setState('crawl'); }
+const slideLen = i => slideSet[i].text.length / 34 + 3.4;
+function newRun() {
+  lives = 3; continues = 2; coinBank = 0; masters = 0; totals = { coins: 0, stars: 0 }; levelIndex = 0; loadLevel(0); setState('intro');
+}
 const CLEAR_LINES = ['YOU BROKE OUT OF THE STUDIO', 'DOWNTOWN IS WITH YOU', 'THE WESTSIDE IS WITH YOU', 'THE STRIP IS CHEERING YOUR NAME'];
 function update(dt) {
   t += dt; stateT += dt;
   if (state === 'loading') { if (loaded >= toLoad && stateT > 0.4) setState('title'); }
   else if (state === 'title') { if (startPressed) startGame(); }
   else if (state === 'crawl') {
-    const typed = SLIDES[crawlPage].text.length / 34;
+    const typed = slideSet[crawlPage].text.length / 34;
     if (startPressed) { startPressed = false; if (stateT < typed + 0.5) stateT = typed + 0.5; else nextCrawl(); }
     else if (stateT > slideLen(crawlPage)) nextCrawl();
   }
@@ -701,23 +736,30 @@ function update(dt) {
     if (Math.random() < dt * 30) rain.push({ x: Math.random() * W, y: -12, vy: 60 + Math.random() * 60, ph: Math.random() * 4 });
     for (const c of rain) c.y += c.vy * dt;
     rain = rain.filter(c => c.y < H + 12);
-    if (startPressed && stateT > 1) { rain = []; levelIndex++; loadLevel(levelIndex); setState('intro'); }
+    if (startPressed && stateT > 1) {
+      rain = []; levelIndex++;
+      if (levelIndex === 4) playSlides(BOSS_SLIDES, () => { loadLevel(4); setState('intro'); });
+      else { loadLevel(levelIndex); setState('intro'); }
+    }
   }
-  else if (state === 'deal') { if (startPressed && stateT > 1.2) { sfx.select(); setState(dealPick === 0 ? 'endBad' : 'endTrue'); } }
+  else if (state === 'deal') {
+    if (startPressed && stateT > 1.2) { sfx.select(); if (dealPick === 0) playSlides(SIGNED_SLIDES, () => setState('endBad')); else setState('endTrue'); }
+  }
   else if (state === 'over') {
     if (startPressed && stateT > 1.2) {
       sfx.select();
       if (continues > 0 && dealPick === 0) { continues--; lives = 3; masters = mastersAtStart; loadLevel(levelIndex); setState('intro'); }
-      else if (continues > 0) { lives = 3; continues = 2; coinBank = 0; masters = 0; totals = { coins: 0, stars: 0 }; levelIndex = 0; loadLevel(0); setState('intro'); }
+      else if (continues > 0) newRun();
       else setState('title');
     }
   }
-  else if (state === 'endBad' || state === 'endTrue') { if (startPressed && stateT > 1.5) setState('title'); }
+  else if (state === 'endBad') { if (startPressed && stateT > 1.5) newRun(); }
+  else if (state === 'endTrue') { if (startPressed && stateT > 1.5) setState('title'); }
   if (state === 'play' || state === 'dead' || state === 'clear') updateFx(dt);
 }
 function nextCrawl() {
   crawlPage++; stateT = 0;
-  if (crawlPage >= SLIDES.length) { loadLevel(0); setState('intro'); }
+  if (crawlPage >= slideSet.length) slideDone();
 }
 
 /* ---------------- drawing ---------------- */
@@ -839,7 +881,8 @@ function drawWorldClimb() {
   rect('rgba(5,4,20,.3)', 0, 0, W, H);
   ctx.save(); ctx.translate(0, -cy);
   for (const c of L.crowd) drawPerson(c.i, c.px, L.slabs[0].y);
-  sprFeet('elevator', 296, L.slabs[0].y);
+  sprFeet('elevator', L.stage ? 290 : 30, L.slabs[0].y);
+  sprFeet('elevator', L.elevTop, L.slabs[5].y);
   const lw = sprW('ladder'), lh = sprH('ladder');
   for (const l of L.ladders) {
     ctx.save(); ctx.beginPath(); ctx.rect(l.x - 2, l.top, lw + 4, l.bottom - l.top); ctx.clip();
@@ -853,8 +896,11 @@ function drawWorldClimb() {
     ctx.restore();
   }
   const b = L.boss, feet = L.slabs[5].y;
-  const bf = b.dead ? 'bossDead' : b.hurt > 0 ? 'bossHurt' : b.throwAnim > 0 ? 'bossThrow' : 'bossIdle';
-  if (b.dead || !(b.hurt > 0 && Math.floor(t * 16) % 2)) sprFeet(bf, Math.round(b.x + 14), feet, b.dir < 0 && b.throwAnim <= 0);
+  if (!b.gone) {
+    const bf = b.dead ? 'bossDead' : b.hurt > 0 && !b.flee ? 'bossHurt' : b.throwAnim > 0 ? 'bossThrow' : 'bossIdle';
+    const facing = b.throwAnim > 0 ? b.throwDir : b.dir;
+    if (b.dead || b.flee || !(b.hurt > 0 && Math.floor(t * 16) % 2)) sprFeet(bf, Math.round(b.x + 14), feet, facing < 0);
+  }
   for (const r of L.rollers) {
     if (r.kind === 1) {
       ctx.save(); ctx.translate(snap(r.x + r.w / 2), snap(r.y + r.h / 2)); ctx.rotate(r.rot);
@@ -915,7 +961,7 @@ function render() {
     return;
   }
   if (state === 'crawl') {
-    const sl = SLIDES[crawlPage], im = IMG[sl.img], dur = slideLen(crawlPage), k = Math.min(1, stateT / dur);
+    const sl = slideSet[crawlPage], im = IMG[sl.img], dur = slideLen(crawlPage), k = Math.min(1, stateT / dur);
     rect('#000', 0, 0, W, H);
     if (ready(im)) {   // slow push-in and drift across each slide
       const z = 1.06 + 0.08 * k, dh = H * z, dw = dh * im.naturalWidth / im.naturalHeight;
@@ -926,11 +972,14 @@ function render() {
         sprFeet(Math.floor(t * 5 + i) % 2 ? 'clone1' : 'clone2', Math.round(cx), (H - dh) / 2 - 6 * k + 160 * z, true);
       }
     }
+    if (sl.rain) for (let i = 0; i < 26; i++) sprC(COIN_FRAMES[(i + Math.floor(t * 8)) % 4], (i * 53) % W, ((t * 55 + i * 37) % 230) - 20);
+    if (sl.red) rect('rgba(160,0,20,' + (0.15 + 0.1 * Math.sin(t * 4)) + ')', 0, 0, W, H);
     const g = ctx.createLinearGradient(0, 120, 0, H); g.addColorStop(0, 'rgba(5,4,15,0)'); g.addColorStop(0.35, 'rgba(5,4,15,.82)'); g.addColorStop(1, 'rgba(5,4,15,.92)');
     ctx.fillStyle = g; ctx.fillRect(0, 120, W, H - 120);
+    if (sl.speaker) { rect('#ffcc33', 20, 131, sl.speaker.length * 8 + 8, 11); text(sl.speaker, 24, 133, '#100c22', 8, 'left', null); }
     const lines = wrap(sl.text, 36), shown = Math.floor(stateT * 34); let used = 0;
-    lines.forEach((l, i) => { const n = clamp(shown - used, 0, l.length); used += l.length + 1; text(l.slice(0, n), W / 2, 146 + i * 13, '#f3ead8', 8, 'center'); });
-    SLIDES.forEach((_, i) => rect(i === crawlPage ? '#ffcc33' : '#3a3260', W / 2 - SLIDES.length * 6 + i * 12, 184, 8, 3));
+    lines.forEach((l, i) => { const n = clamp(shown - used, 0, l.length); used += l.length + 1; text(l.slice(0, n), W / 2 - l.length * 4, 146 + i * 13, '#f3ead8', 8, 'left'); });
+    slideSet.forEach((_, i) => rect(i === crawlPage ? '#ffcc33' : '#3a3260', W / 2 - slideSet.length * 6 + i * 12, 184, 8, 3));
     if (blink() && shown > sl.text.length) text('▸', W - 14, 180, '#ffcc33', 8, 'center', null);
     const fadeIn = Math.max(0, 1 - stateT / 0.6), fadeOut = Math.max(0, (stateT - (dur - 0.5)) / 0.5);
     const fade = Math.max(fadeIn, fadeOut); if (fade > 0) rect('rgba(0,0,0,' + fade + ')', 0, 0, W, H);
@@ -938,12 +987,12 @@ function render() {
   }
   if (state === 'deal') {
     drawCover(IMG.scene_deal, 0.2);
-    textBox(['THE CEO SLIDES A CONTRACT ACROSS THE DESK:', '"HAND OVER THE NORTH STAR AND', 'WE\'LL PUSH YOUR ALBUM TO MILLIONS."'], 18);
-    const opts = [['TAKE THE', 'DEAL'], ['GIVE THE STAR', 'TO THE PEOPLE']];
+    textBox(['THE CEO SLIDES THE CONTRACT ACROSS THE DESK.', '"WHAT DO YOU SAY?"'], 18);
+    const opts = [['SIGN THE', 'CONTRACT'], ['TURN IT', 'DOWN']];
     opts.forEach((o, i) => {
-      const x = i === 0 ? 24 : 168, sel = dealPick === i;
-      panel(x, 128, 128, 40, sel ? '#ffcc33' : '#3a3260');
-      o.forEach((l, j) => text(l, x + 64, 138 + j * 12, sel ? '#ffcc33' : '#a99bc2', 8, 'center'));
+      const x = i === 0 ? 40 : 172, sel = dealPick === i;
+      panel(x, 128, 108, 40, sel ? '#ffcc33' : '#3a3260');
+      o.forEach((l, j) => text(l, x + 54, 138 + j * 12, sel ? '#ffcc33' : '#a99bc2', 8, 'center'));
       if (sel && blink()) text('▸', x - 10, 144, '#ffcc33', 8, 'left', null);
     });
     text('← → CHOOSE · JUMP TO DECIDE', W / 2, 178, '#cfc3e0', 8, 'center');
@@ -951,8 +1000,8 @@ function render() {
   }
   if (state === 'endBad') {
     drawCover(IMG.scene_deal, 0.55 + Math.min(0.3, stateT * 0.05));
-    textBox(['THE ALBUM BLEW UP FOR ONE NIGHT.', 'THEN THE STAR WENT DARK.', 'THE CLONES TOOK OVER AGAIN.'], 60, '#ff9a9a');
-    text('BAD ENDING', W / 2, 130, '#e8413c', 16, 'center');
+    textBox(['THE LABEL OWNS YOUR NAME NOW.', 'BUT YOU STILL HAVE YOUR MASTERS: ' + masters + '/7', 'TIME TO START AGAIN FROM THE STUDIO.'], 60, '#ff9a9a');
+    text('YOU SIGNED', W / 2, 130, '#e8413c', 16, 'center');
     if (blink() && stateT > 1.5) text(PRESS(), W / 2, 166, '#f3ead8', 8, 'center');
     return;
   }
@@ -979,7 +1028,7 @@ function render() {
   hud();
   if (state === 'intro') {
     rect('rgba(5,4,15,.72)', 0, 0, W, H);
-    text(levelIndex === 4 ? 'FINAL LEVEL' : 'LEVEL ' + (levelIndex + 1), W / 2, 50, '#a99bc2', 8, 'center');
+    text(levelIndex >= 4 ? (lv.stage ? 'FINAL LEVEL · PART 2' : 'FINAL LEVEL · PART 1') : 'LEVEL ' + (levelIndex + 1), W / 2, 50, '#a99bc2', 8, 'center');
     text(lv.name, W / 2, 66, '#ffcc33', 16, 'center');
     lv.intro.forEach((l, i) => text(l, W / 2, 98 + i * 14, i === 0 ? '#3ee6ff' : '#cfc3e0', 8, 'center'));
   } else if (state === 'over') {
@@ -987,10 +1036,10 @@ function render() {
     if (continues > 0) {
       text('OUT OF LIVES', W / 2, 40, '#e8413c', 16, 'center');
       text(continues === 2 ? 'TAKE YOUR SECOND CHANCE?' : 'THIS IS YOUR FINAL CHANCE', W / 2, 66, '#cfc3e0', 8, 'center');
-      [['CONTINUE', 'THIS LEVEL · 3 LIVES'], ['START OVER', 'FROM THE STUDIO']].forEach((o, i) => {
-        const x = i === 0 ? 24 : 168, sel = dealPick === i;
-        panel(x, 96, 128, 44, sel ? '#ffcc33' : '#3a3260');
-        text(o[0], x + 64, 106, sel ? '#ffcc33' : '#a99bc2', 8, 'center'); text(o[1], x + 64, 122, '#7a7199', 8, 'center');
+      [['CONTINUE', 'THIS LEVEL'], ['START OVER', 'LEVEL 1']].forEach((o, i) => {
+        const x = i === 0 ? 40 : 172, sel = dealPick === i;
+        panel(x, 96, 108, 40, sel ? '#ffcc33' : '#3a3260');
+        text(o[0], x + 54, 106, sel ? '#ffcc33' : '#a99bc2', 8, 'center'); text(o[1], x + 54, 120, '#7a7199', 8, 'center');
         if (sel && blink()) text('▸', x - 10, 112, '#ffcc33', 8, 'left', null);
       });
       text('← → CHOOSE · JUMP TO DECIDE', W / 2, 160, '#cfc3e0', 8, 'center');
@@ -1001,6 +1050,8 @@ function render() {
     }
   } else if (state === 'play' && lv.kind === 'climb' && lv.boss.dead) {
     text('THE CEO IS DOWN', W / 2, 30, '#ffcc33', 8, 'center');
+  } else if (state === 'play' && lv.kind === 'climb' && lv.boss.gone) {
+    text('HE TOOK THE ELEVATOR UP!', W / 2, 30, '#ff6b6b', 8, 'center');
   }
 }
 
