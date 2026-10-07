@@ -95,6 +95,16 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
 .howto-items span{font-family:"VT323",ui-monospace,monospace;font-size:20px;line-height:1.1;color:#ffe680}
 .howto-back{align-self:center;font:inherit;font-size:11px;letter-spacing:.08em;color:#100c22;background:#ffd84a;border:0;border-bottom:5px solid #b8860b;border-radius:8px;padding:15px 20px;cursor:pointer;min-height:50px}
 
+.gate{position:absolute;inset:0;z-index:4;display:grid;place-items:center;padding:16px;overflow-y:auto;background:rgba(5,4,15,.8);-webkit-user-select:text;user-select:text}
+.gate[hidden]{display:none}
+.gate-card{position:relative;width:min(400px,100%);box-sizing:border-box;background:#100c22;border:3px solid #ffcc33;border-radius:12px;padding:26px 18px 18px;box-shadow:0 0 0 3px #000,0 24px 60px rgba(0,0,0,.7);--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.gate-card .soc-tag{text-align:center}
+.gate-card h2{margin:0;text-align:center;font-weight:400;font-size:clamp(12px,3.6vw,15px);line-height:1.6;color:var(--fg);text-shadow:3px 3px 0 #3a1030}
+.gate-card h2 em{font-style:normal;color:var(--accent)}
+.gate-card .soc-btn{width:100%}
+.gate-x{position:absolute;top:6px;right:6px;width:40px;height:40px;background:none;border:0;color:#a99bc2;cursor:pointer;padding:10px}
+.gate-x svg{width:100%;height:100%;stroke:currentColor;stroke-width:2.6}
+
 /* ---------- North Star Society (reward screen after the true ending) ---------- */
 .society{position:fixed;inset:0;z-index:20;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;
   background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(44,85,224,.45),rgba(7,6,15,0) 70%),#07060f;
@@ -190,6 +200,19 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
     <div class="cover-badge" aria-label="Rated 702"><small>RATED</small><b>702</b></div>
   </div>
   <div class="cover-foot">NORTH STAR © 2026 MILES LOW</div>
+  <div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-h" hidden>
+    <form class="soc-form gate-card" id="gate-form" novalidate>
+      <button type="button" class="gate-x" id="gate-x" aria-label="Back to main menu"><svg viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+      <div class="soc-tag">★ PLAYER 1 ★</div>
+      <h2 id="gate-h" tabindex="-1">ENTER YOUR NAME<br>TO <em>PLAY</em></h2>
+      <label>NAME<input type="text" name="name" autocomplete="name" maxlength="60" required></label>
+      <label>EMAIL<input type="email" name="email" autocomplete="email" maxlength="120" required></label>
+      <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="soc-err" id="gate-err" role="alert"></div>
+      <button class="soc-btn" type="submit" id="gate-go">PLAY ▸</button>
+      <p class="soc-fine">You'll get North Star news by email. Unsubscribe anytime.</p>
+    </form>
+  </div>
   <div class="howto" id="howto" role="dialog" aria-label="Instructions" hidden>
     <button class="howto-x" id="howto-x" aria-label="Back to main menu"><svg viewBox="0 0 24 24" fill="none"><path d="M4 4l16 16M20 4L4 20"/></svg></button>
     <div class="howto-in">
@@ -326,8 +349,12 @@ function glow(x, y, r, col, a) { ctx.globalAlpha = a; ctx.fillStyle = col; ctx.b
 let ac = null;
 function audioOn() {
   musicUnlocked = true;
-  if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
-  if (ac && ac.state === 'suspended') ac.resume();
+  if (!ac) {
+    try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; }
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}   // iPhone: play even with the silent switch on
+    hookMusic();
+  }
+  if (ac && ac.state !== 'running') ac.resume();
 }
 function tone(f1, f2, dur, type = 'square', vol = 0.06, delay = 0) {
   if (!ac) return;
@@ -371,8 +398,32 @@ const MUSIC_VOL = 0.28;
 // Title screen + instructions: Ten Toes. Opening story: Weatherman. Game: Boomerang, 500 Degrees, Ten Toes, Weatherman, then shuffle.
 const TRACKS = { tentoes: 'audio/ten-toes.mp3', weatherman: 'audio/weatherman.mp3', boomerang: 'audio/boomerang.mp3', degrees: 'audio/500-degrees.mp3' };
 const FIRST_LAP = ['boomerang', 'degrees', 'tentoes', 'weatherman'];
-const MUSIC = {};
-for (const k in TRACKS) { const a = new Audio(TRACKS[k]); a.preload = 'auto'; a.volume = 0; a.addEventListener('ended', () => { if (k === playlist.cur) nextTrack(); }); MUSIC[k] = a; }
+const MUSIC = {}, GAIN = {}, VOL = {};
+for (const k in TRACKS) {
+  const a = new Audio(TRACKS[k]); a.preload = 'auto'; a.volume = 0; a.setAttribute('playsinline', '');
+  a.addEventListener('ended', () => { if (k === playlist.cur) nextTrack(); });
+  MUSIC[k] = a; VOL[k] = 0;
+}
+// iPhones ignore audio.volume, so songs never faded or stopped there. Route each song through a gain node
+// (real volume on every phone) and stop songs by our own volume count, never by reading audio.volume.
+function hookMusic() {
+  if (!ac) return;
+  try {
+    for (const k in MUSIC) {
+      const g = ac.createGain(); g.gain.value = 0;
+      ac.createMediaElementSource(MUSIC[k]).connect(g).connect(ac.destination);
+      MUSIC[k].volume = 1; GAIN[k] = g;
+    }
+  } catch (e) { for (const k in GAIN) delete GAIN[k]; }
+  for (const k in MUSIC) {   // unlock every song inside this first tap so iPhone lets us play them later
+    const a = MUSIC[k]; a.muted = true;
+    const pr = a.play();
+    const done = () => { a.muted = false; if (VOL[k] === 0) { a.pause(); a.currentTime = 0; } };
+    if (pr) pr.then(done, done); else done();
+  }
+}
+function setVol(k, v) { VOL[k] = v; if (GAIN[k]) GAIN[k].gain.value = v; else MUSIC[k].volume = v; }
+function cutMusic() { for (const k in MUSIC) { MUSIC[k].pause(); setVol(k, 0); } }
 const playlist = { i: 0, cur: null };
 function nextTrack() {
   playlist.i++;
@@ -387,13 +438,17 @@ function toggleMusic() { musicOn = !musicOn; muteBtns.forEach(b => { b.classList
 muteBtns.forEach(b => b.addEventListener('click', e => { e.stopPropagation(); audioOn(); toggleMusic(); }));
 function updateMusic(dt) {
   const want = musicOn && musicUnlocked ? musicKey() : null;
-  for (const k in MUSIC) {
-    const a = MUSIC[k], target = k === want ? MUSIC_VOL : 0;
-    a.loop = k !== playlist.cur || want !== playlist.cur;   // scene songs loop; playlist songs run to the end and hand off
-    a.volume = clamp(a.volume + Math.sign(target - a.volume) * dt * 0.5, 0, MUSIC_VOL);
-    if (target > 0 && a.paused) a.play().catch(() => {});
-    if (target === 0 && a.volume === 0 && !a.paused) a.pause();
+  let fading = false;
+  for (const k in MUSIC) {   // anything that isn't the current song fades out fast and stops
+    if (k === want || (MUSIC[k].paused && VOL[k] === 0)) continue;
+    const v = Math.max(0, VOL[k] - dt * 1.8); setVol(k, v);
+    if (v === 0) MUSIC[k].pause(); else fading = true;
   }
+  if (!want || fading) return;   // the next song waits until the last one is fully stopped: never two at once
+  const a = MUSIC[want];
+  a.loop = want !== playlist.cur;   // scene songs loop; playlist songs run to the end and hand off
+  if (a.paused && !a.muted && !a._starting) { a._starting = true; const pr = a.play(); const f = () => { a._starting = false; }; if (pr) pr.then(f, f); else f(); }
+  setVol(want, Math.min(MUSIC_VOL, VOL[want] + dt * 0.6));
 }
 
 /* atlas rects in screen pixels; drawn at 1/SCALE so nothing is resampled */
@@ -918,7 +973,7 @@ function updateClimb(dt) {
     }
   } else {
     b.deadT += dt;
-    if (b.deadT > 2.6) { totals.coins += lv.coinsGot; playSlides(PITCH_SLIDES, () => { setState('deal'); dealPick = 0; }); return; }
+    if (b.deadT > 2.6) { totals.coins += lv.coinsGot; playSlides(PITCH_SLIDES, () => { setState('deal'); dealPick = -1; }); return; }
   }
 
   for (const r of L.rollers) {
@@ -1010,7 +1065,8 @@ function update(dt) {
     }
   }
   else if (state === 'deal') {
-    if (startPressed && stateT > 1.2) { sfx.select(); if (dealPick === 0) playSlides(SIGNED_SLIDES, () => setState('endBad')); else setState('endTrue'); }
+    if (startPressed && (stateT <= 1.2 || dealPick < 0)) startPressed = false;   // nothing chosen yet: a stray tap does nothing
+    else if (startPressed) { sfx.select(); if (dealPick === 0) playSlides(SIGNED_SLIDES, () => setState('endBad')); else if (dealPick === 1) setState('endTrue'); }
   }
   else if (state === 'over') {
     if (startPressed && stateT > 1.2) {
@@ -1268,7 +1324,7 @@ function render() {
       o.forEach((l, j) => text(l, x + 54, 138 + j * 12, sel ? '#ffcc33' : '#a99bc2', 8, 'center'));
       if (sel && blink()) text('▸', x - 10, 144, '#ffcc33', 8, 'left', null);
     });
-    text('← → CHOOSE · JUMP TO DECIDE', W / 2, 178, '#cfc3e0', 8, 'center');
+    text(TOUCH ? (dealPick < 0 ? 'TAP YOUR CHOICE' : 'TAP IT AGAIN TO CONFIRM') : '← → CHOOSE · JUMP TO DECIDE', W / 2, 178, '#cfc3e0', 8, 'center');
     return;
   }
   if (state === 'endBad') {
@@ -1316,7 +1372,7 @@ function render() {
         text(o[0], x + 54, 106, sel ? '#ffcc33' : '#a99bc2', 8, 'center'); text(o[1], x + 54, 120, '#7a7199', 8, 'center');
         if (sel && blink()) text('▸', x - 10, 112, '#ffcc33', 8, 'left', null);
       });
-      text('← → CHOOSE · JUMP TO DECIDE', W / 2, 160, '#cfc3e0', 8, 'center');
+      text(TOUCH ? 'TAP A CHOICE, THEN TAP IT AGAIN' : '← → CHOOSE · JUMP TO DECIDE', W / 2, 160, '#cfc3e0', 8, 'center');
     } else {
       text('GAME OVER', W / 2, 70, '#e8413c', 16, 'center');
       text('BACK TO THE BEGINNING', W / 2, 96, '#cfc3e0', 8, 'center');
@@ -1333,6 +1389,7 @@ function render() {
 const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'jump', ArrowUp: 'jump', KeyW: 'jump', KeyZ: 'jump' };
 function choose(k) { if ((state === 'deal' || (state === 'over' && continues > 0)) && (k === 'left' || k === 'right')) { dealPick = k === 'left' ? 0 : 1; sfx.select(); } }
 addEventListener('keydown', e => {
+  if (e.target.closest && e.target.closest('input, textarea')) return;   // typing in a form field
   if (socOpen) return;   // the Society screen has real form fields; let typing through
   if (coverOn()) { if (!e.repeat) coverKey(e); return; }
   const k = KEYMAP[e.code];
@@ -1353,7 +1410,18 @@ document.querySelectorAll('.pad button').forEach(b => {
   b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('pointerleave', up);
   b.addEventListener('contextmenu', e => e.preventDefault());
 });
-cv.addEventListener('pointerdown', () => { audioOn(); if (state !== 'play') startPressed = true; });
+cv.addEventListener('pointerdown', e => {
+  audioOn();
+  if (state === 'deal' || (state === 'over' && continues > 0)) {   // two-button screens: tap a button to pick it, tap it again to confirm
+    const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H;
+    const top = state === 'deal' ? 128 : 96;
+    const i = y >= top - 6 && y <= top + 46 ? (x >= 34 && x <= 154 ? 0 : x >= 166 && x <= 286 ? 1 : -1) : -1;
+    if (i < 0 || stateT < 1.2) return;
+    if (dealPick === i) startPressed = true; else { dealPick = i; sfx.select(); }
+    return;
+  }
+  if (state !== 'play') startPressed = true;
+});
 
 /* ---------------- cover page (title screen) + instructions ---------------- */
 // The cover stays up while loading and on the title. The first tap "enters" (browsers only allow music after a tap), then START.
@@ -1362,7 +1430,7 @@ const coverOn = () => document.getElementById('cover').classList.contains('on');
 const howtoOpen = () => !document.getElementById('howto').hidden;
 function syncCover() {
   const c = document.getElementById('cover'), on = state === 'loading' || state === 'title';
-  if (c.classList.contains('on') !== on) { c.classList.toggle('on', on); if (!on) showHowto(false); }
+  if (c.classList.contains('on') !== on) { c.classList.toggle('on', on); if (!on) { showHowto(false); document.getElementById('gate').hidden = true; } }
   coverButton();
 }
 function coverButton() {
@@ -1376,8 +1444,36 @@ function coverEnter() { if (!coverEntered) { coverEntered = true; audioOn(); cov
 function coverGo() {
   if (!coverEntered) { coverEnter(); return; }
   if (state !== 'title') return;
-  sfx.select(); startGame();
+  sfx.select();
+  if (playerLoad()) beginStory(); else showGate(true);
 }
+// Player sign-in before the story: name + email, saved to api/play. Ten Toes keeps playing until they submit.
+const PLAYER_KEY = 'ns-player-v1';
+function playerLoad() { try { return JSON.parse(localStorage.getItem(PLAYER_KEY) || 'null'); } catch (e) { return null; } }
+function playerSave(p) { try { localStorage.setItem(PLAYER_KEY, JSON.stringify(p)); } catch (e) {} }
+const gateOpen = () => !document.getElementById('gate').hidden;
+function showGate(open) {
+  const g = document.getElementById('gate'); g.hidden = !open;
+  if (open) { document.getElementById('gate-err').textContent = ''; setTimeout(() => document.getElementById('gate-form').elements.namedItem('name').focus(), 50); }
+  else if (coverOn()) document.getElementById('cover-go').focus({ preventScroll: true });
+}
+function beginStory() { showGate(false); cutMusic(); startGame(); }   // kill every song, then Weatherman starts with the story
+document.getElementById('gate-x').addEventListener('click', () => showGate(false));
+document.getElementById('gate-form').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const f = ev.target.elements, err = document.getElementById('gate-err'), btn = document.getElementById('gate-go');
+  const d = { name: f.namedItem('name').value.trim(), email: f.namedItem('email').value.trim(), website: f.namedItem('website').value };
+  if (d.name.length < 2) { err.textContent = 'Add your name.'; f.namedItem('name').focus(); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email)) { err.textContent = "That email doesn't look right."; f.namedItem('email').focus(); return; }
+  err.textContent = ''; btn.disabled = true; btn.textContent = 'LOADING…';
+  try {
+    const r = await fetch('api/play', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
+    if (r.status === 400) { const j = await r.json().catch(() => ({})); err.textContent = j.error || 'Check your info and try again.'; btn.disabled = false; btn.textContent = 'PLAY ▸'; return; }
+  } catch (e) {}   // no server (preview) or a network hiccup: never block someone from playing
+  btn.disabled = false; btn.textContent = 'PLAY ▸';
+  playerSave({ name: d.name, email: d.email });
+  beginStory();
+});
 function showHowto(open) {
   const h = document.getElementById('howto');
   h.hidden = !open;
@@ -1394,6 +1490,7 @@ document.getElementById('howto-back').addEventListener('click', () => { sfx.sele
 document.getElementById('cover').addEventListener('pointerdown', e => { if (!e.target.closest('#cover-go')) coverEnter(); });
 function coverKey(e) {
   if (e.code === 'KeyM') { coverEnter(); toggleMusic(); return; }
+  if (gateOpen()) { if (e.code === 'Escape') showGate(false); return; }
   if (howtoOpen()) { if (e.code === 'Escape' || e.code === 'Backspace') { e.preventDefault(); showHowto(false); } return; }
   if (e.code === 'Enter' || e.code === 'Space') { if (e.target.closest && e.target.closest('button')) return; e.preventDefault(); coverGo(); }   // a focused button clicks itself
   else if (e.code === 'KeyI') showHowto(true);
@@ -1475,6 +1572,7 @@ function openSociety() {
   soc.classList.add('on'); soc.setAttribute('aria-hidden', 'false');
   const saved = socLoad();
   const v = $('soc-video'); v.currentTime = 0; v.play().catch(() => {});
+  const pl = playerLoad(); if (pl) { if (!F('name').value) F('name').value = pl.name; if (!F('email').value) F('email').value = pl.email; }
   if (saved) { socEntry = saved; setCard(saved.name, saved.member); socDone(true); }
   else { setCard('', 0); socShow('welcome'); }
 }
