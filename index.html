@@ -51,6 +51,72 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
 .pad button.on{transform:translateY(2px);border-bottom-width:3px;filter:brightness(1.3)}
 .pad svg{width:22px;height:22px;fill:currentColor}
 @media (pointer:coarse){.pad{display:flex}.hint{display:none}}
+
+/* ---------- North Star Society (reward screen after the true ending) ---------- */
+.society{position:fixed;inset:0;z-index:20;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(44,85,224,.45),rgba(7,6,15,0) 70%),#07060f;
+  -webkit-user-select:text;user-select:text;--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.society.on{display:block}
+.soc-wrap{max-width:560px;margin:0 auto;padding:28px 16px 48px;display:flex;flex-direction:column;gap:18px;align-items:center;text-align:center}
+.soc-wrap [hidden]{display:none!important}
+.soc-tag{font-size:9px;letter-spacing:.22em;color:var(--accent)}
+.society h1,.society h2{margin:0;line-height:1.55;color:var(--fg);text-shadow:3px 3px 0 #3a1030;font-weight:400}
+.society h1{font-size:clamp(15px,4.6vw,22px)}
+.society h2{font-size:clamp(13px,3.8vw,17px)}
+.society h1 em,.society h2 em{font-style:normal;color:var(--accent)}
+.soc-copy{font-family:var(--sans);font-size:16px;line-height:1.6;color:#d9d0ea;margin:0;max-width:46ch}
+.soc-copy b{color:var(--fg)}
+.showroom{position:relative;width:100%;height:clamp(220px,62vw,286px);display:flex;justify-content:center;align-items:flex-end;perspective:900px}
+.showroom::before{content:'';position:absolute;inset:-10% -5% 0;pointer-events:none;
+  background:radial-gradient(ellipse 38% 50% at 50% 48%,rgba(255,242,168,.17),rgba(255,242,168,0) 72%),radial-gradient(ellipse 30% 30% at 50% 50%,rgba(44,85,224,.25),rgba(44,85,224,0) 70%)}
+.society [tabindex="-1"]:focus{outline:none}
+.pedestal{position:absolute;bottom:4px;left:50%;width:min(300px,76vw);height:30px;transform:translateX(-50%);border-radius:50%;
+  background:radial-gradient(ellipse at 50% 35%,#302a58,#0d0a1e 72%);box-shadow:inset 0 0 0 1px #3a3260,0 14px 30px rgba(0,0,0,.6)}
+.card3d{position:relative;z-index:1;margin-bottom:30px;transform-style:preserve-3d;animation:socFloat 6s ease-in-out infinite}
+@keyframes socFloat{0%,100%{transform:translateY(0) rotateY(-16deg) rotateX(7deg)}50%{transform:translateY(-8px) rotateY(16deg) rotateX(3deg)}}
+.ns-card{position:relative;width:min(320px,78vw);aspect-ratio:320/202;border-radius:14px;overflow:hidden;line-height:0;box-shadow:0 26px 40px rgba(0,0,0,.6),0 0 30px rgba(44,85,224,.35)}
+.ns-card svg{width:100%;height:100%}
+.ns-card::after{content:'';position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;
+  background:linear-gradient(105deg,rgba(255,255,255,0) 38%,rgba(255,255,255,.38) 48%,rgba(255,255,255,0) 58%) no-repeat;
+  background-size:260% 100%;animation:socShine 4.5s ease-in-out infinite}
+@keyframes socShine{0%{background-position:130% 0}60%,100%{background-position:-30% 0}}
+@media (prefers-reduced-motion:reduce){.card3d,.ns-card::after{animation:none}}
+.soc-box{width:100%;box-sizing:border-box;background:#100c22;border:2px solid #3a3260;border-radius:10px;padding:16px;text-align:left}
+.soc-box h3{margin:0 0 12px;font-size:9px;letter-spacing:.16em;color:var(--accent);font-weight:400;line-height:1.6}
+.soc-prizes{list-style:none;margin:0;padding:0;display:grid;gap:10px;font-family:var(--sans);font-size:15px;color:var(--fg)}
+.soc-prizes li{display:flex;align-items:center;gap:10px;line-height:1.35}
+.soc-prizes i{flex:none;width:12px;height:12px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+.soc-btn{font:inherit;font-size:11px;letter-spacing:.06em;color:#100c22;background:var(--accent);border:0;border-bottom:4px solid #b8860b;border-radius:8px;
+  padding:16px 22px;cursor:pointer;min-height:48px}
+.soc-btn:hover{filter:brightness(1.08)}
+.soc-btn:active{transform:translateY(2px);border-bottom-width:2px}
+.soc-btn:disabled{opacity:.55;cursor:default}
+.soc-btn.ghost{background:transparent;color:var(--fg);border:2px solid var(--pad-edge);border-bottom-width:4px}
+.soc-btn:focus-visible,.soc-form input:focus-visible{outline:2px solid #3ee6ff;outline-offset:2px}
+.soc-gallery{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.soc-gallery img{width:100%;height:100%;object-fit:cover;border-radius:8px;display:block;border:2px solid #3a3260;box-sizing:border-box}
+.soc-gallery img.wide{grid-column:1/-1;height:auto}
+.soc-gallery figcaption{grid-column:1/-1;font-size:8px;letter-spacing:.16em;color:var(--dim);margin-top:2px}
+.soc-form{width:100%;display:grid;gap:14px;text-align:left}
+.soc-form label{display:grid;gap:7px;font-size:9px;letter-spacing:.12em;color:#cfc3e0}
+.soc-form input[type=text],.soc-form input[type=email],.soc-form input[type=tel]{font-family:var(--sans);font-size:16px;color:var(--fg);background:#100c22;
+  border:2px solid #3a3260;border-radius:8px;padding:12px 12px;width:100%;box-sizing:border-box}
+.soc-form input:focus{border-color:var(--accent);outline:none}
+.soc-form .chk{display:flex;align-items:flex-start;gap:10px;font-family:var(--sans);font-size:13px;letter-spacing:0;line-height:1.5;color:#a99bc2}
+.soc-form .chk input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:#ffcc33}
+.soc-form .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.soc-err{font-family:var(--sans);font-size:14px;color:#ff8a8a;min-height:1em}
+.soc-fine{font-family:var(--sans);font-size:12px;line-height:1.5;color:var(--dim);margin:0}
+.wheel-box{position:relative;width:min(340px,84vw);aspect-ratio:1}
+.wheel-box canvas{width:100%;height:100%;display:block}
+.wheel-pin{position:absolute;left:50%;top:-6px;width:0;height:0;transform:translateX(-50%);z-index:2;
+  border-left:14px solid transparent;border-right:14px solid transparent;border-top:28px solid #ffcc33;filter:drop-shadow(0 3px 0 #000)}
+.wheel-hub{position:absolute;left:50%;top:50%;width:25%;height:25%;transform:translate(-50%,-50%);border-radius:50%;
+  font:inherit;font-size:10px;color:#100c22;background:radial-gradient(circle at 40% 35%,#ffe27a,#ffcc33 55%,#b8860b);border:3px solid #100c22;cursor:pointer;
+  box-shadow:0 0 0 3px #ffcc33,0 6px 14px rgba(0,0,0,.5)}
+.wheel-hub:disabled{cursor:default}
+.soc-won{font-size:clamp(12px,3.6vw,15px);line-height:1.7;color:var(--accent);margin:0}
+.soc-note{font-family:var(--sans);font-size:13px;color:#ffcc33;background:rgba(255,204,51,.08);border:1px dashed rgba(255,204,51,.4);border-radius:8px;padding:8px 10px;margin:0}
 </style>
 </head>
 <body>
@@ -66,6 +132,58 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
   </div>
   <button id="btn-jump" class="jump" data-k="jump" aria-label="Jump">JUMP</button>
 </div>
+
+<section class="society" id="society" aria-label="North Star Society" aria-hidden="true">
+  <div class="soc-wrap">
+    <div class="soc-tag" data-step="welcome">★ ACCESS GRANTED ★</div>
+    <h1 data-step="welcome" tabindex="-1" id="soc-h1">WELCOME TO THE <em>NORTH STAR SOCIETY</em></h1>
+    <p class="soc-copy" data-step="welcome">You turned down the deal and kept your name. That makes it official: you're welcomed into the <b>North Star Society</b>. Your access has been granted in the game, and it's real out here too.</p>
+    <h2 data-step="join" tabindex="-1">CLAIM YOUR <em>MEMBERSHIP</em></h2>
+    <p class="soc-copy" data-step="join">Membership is free. Add your info to activate your card, then spin the wheel.</p>
+    <h2 data-step="spin" tabindex="-1">SPIN THE <em>WHEEL</em></h2>
+    <p class="soc-copy" data-step="spin" id="soc-spin-copy">Every spin wins something. Tap SPIN.</p>
+    <div data-step="done" class="soc-tag" id="soc-done-tag">★ YOU WON ★</div>
+    <h2 data-step="done" tabindex="-1" id="soc-won-title"></h2>
+
+    <div class="showroom" data-step="welcome join done" aria-label="Your North Star Society card">
+      <div class="card3d"><div class="ns-card" id="soc-card"></div></div>
+      <div class="pedestal"></div>
+    </div>
+
+    <div class="soc-box" data-step="welcome">
+      <h3>FREE TO JOIN · EVERY SPIN WINS ONE OF THESE</h3>
+      <ul class="soc-prizes" id="soc-prize-list"></ul>
+    </div>
+    <button class="soc-btn" data-step="welcome" id="soc-go">JOIN THE SOCIETY ▸</button>
+
+    <form class="soc-form" id="soc-form" data-step="join" novalidate>
+      <label>NAME<input type="text" name="name" autocomplete="name" maxlength="60" required></label>
+      <label>EMAIL<input type="email" name="email" autocomplete="email" maxlength="120" required></label>
+      <label>PHONE<input type="tel" name="phone" autocomplete="tel" maxlength="20" required></label>
+      <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <label class="chk"><input type="checkbox" name="consent"><span>Yes, text and email me North Star Society news and drops. Msg &amp; data rates may apply. Reply STOP to opt out.</span></label>
+      <div class="soc-err" id="soc-err" role="alert"></div>
+      <button class="soc-btn" type="submit" id="soc-submit">JOIN FREE &amp; SPIN ▸</button>
+      <p class="soc-fine">Free to join. No purchase necessary. One entry per person. We use your info to reach you about your prize.</p>
+    </form>
+
+    <div class="wheel-box" data-step="spin">
+      <div class="wheel-pin"></div>
+      <canvas id="soc-wheel" width="680" height="680" aria-label="Prize wheel"></canvas>
+      <button class="wheel-hub" id="soc-spin">SPIN</button>
+    </div>
+
+    <p class="soc-copy" data-step="done" id="soc-done-copy"></p>
+    <p class="soc-note" id="soc-preview" hidden>Preview mode: this entry wasn't sent anywhere. Sign-ups save on the live site.</p>
+    <button class="soc-btn" data-step="done" id="soc-again">PLAY AGAIN ▸</button>
+    <figure class="soc-gallery" data-step="welcome done" style="margin:0">
+      <img class="wide" src="images/society-shirts.webp" alt="Three North Star shirts: Dopesque 702 plate, Dopesque 2015 Battle Born flag, and the blue Northtown dove" loading="lazy">
+      <img src="images/society-cover.webp" alt="NORTH STAR by Miles Low album cover" loading="lazy">
+      <img src="images/society-rack.webp" alt="North Star shirts on a rack, Battle Born Dopesque 2015 back print" loading="lazy">
+      <figcaption>THE NORTH STAR COLLECTION</figcaption>
+    </figure>
+  </div>
+</section>
 
 <script>
 (() => {
@@ -756,7 +874,7 @@ function newRun() {
 const CLEAR_LINES = ['YOU BROKE OUT OF THE STUDIO', 'DOWNTOWN IS WITH YOU', 'THE WESTSIDE IS WITH YOU', 'THE STRIP IS CHEERING YOUR NAME'];
 function musicKey() {
   if (state === 'loading') return null;
-  if (state === 'title' || state === 'endTrue' || (state === 'crawl' && slideSet === SLIDES)) return 'guess';
+  if (state === 'title' || state === 'endTrue' || state === 'society' || (state === 'crawl' && slideSet === SLIDES)) return 'guess';
   if (state === 'crawl' || state === 'deal' || state === 'endBad') return 'insidious';
   if (state === 'clear') return 'funk';
   return levelIndex >= 1 && levelIndex <= 3 ? 'funk' : 'insidious';
@@ -803,7 +921,7 @@ function update(dt) {
     }
   }
   else if (state === 'endBad') { if (startPressed && stateT > 1.5) newRun(); }
-  else if (state === 'endTrue') { if (startPressed && stateT > 1.5) setState('title'); }
+  else if (state === 'endTrue') { if (startPressed && stateT > 1.5) { sfx.select(); openSociety(); } }
   if (state === 'play' || state === 'dead' || state === 'clear') updateFx(dt);
 }
 function nextCrawl() {
@@ -1067,6 +1185,7 @@ function render() {
     if (blink() && stateT > 1.5) text(PRESS(), W / 2, 178, '#f3ead8', 8, 'center');
     return;
   }
+  if (state === 'society') { drawCover(IMG.scene_true, 0.7); return; }
   if (state === 'clear') {
     drawCover(IMG.scene_clear, 0.3);
     for (const c of rain) sprC(COIN_FRAMES[Math.floor(t * 8 + c.ph) % 4], c.x, c.y);
@@ -1114,6 +1233,7 @@ function render() {
 const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'jump', ArrowUp: 'jump', KeyW: 'jump', KeyZ: 'jump' };
 function choose(k) { if ((state === 'deal' || (state === 'over' && continues > 0)) && (k === 'left' || k === 'right')) { dealPick = k === 'left' ? 0 : 1; sfx.select(); } }
 addEventListener('keydown', e => {
+  if (socOpen) return;   // the Society screen has real form fields; let typing through
   const k = KEYMAP[e.code];
   if (k || e.code === 'Enter') e.preventDefault();
   audioOn();
@@ -1133,6 +1253,168 @@ document.querySelectorAll('.pad button').forEach(b => {
   b.addEventListener('contextmenu', e => e.preventDefault());
 });
 cv.addEventListener('pointerdown', () => { audioOn(); if (state !== 'play') startPressed = true; });
+
+/* ---------------- North Star Society: reward screen after turning down the deal ---------------- */
+// Prize order must match api/join.js. The server picks the prize; the wheel just lands on it.
+const SOC_PRIZES = [
+  { short: ['SIGNED', 'CARD'], name: 'A signed North Star Society card', col: '#1d3fbf', ink: '#fff' },
+  { short: ['BANDANA'], name: 'A North Star bandana', col: '#ffcc33', ink: '#100c22' },
+  { short: ['T-SHIRT'], name: 'A North Star t-shirt', col: '#f3ead8', ink: '#100c22' },
+  { short: ['LIVE', 'SESSION'], name: 'Access to a North Star live recording session', col: '#e8413c', ink: '#fff' },
+  { short: ['ZOOM', 'CALL'], name: 'A 10-minute Zoom call with Miles Low', col: '#6b2fd6', ink: '#fff' },
+];
+const SOC_KEY = 'ns-society-v1';
+const soc = document.getElementById('society'), socForm = document.getElementById('soc-form');
+const $ = id => document.getElementById(id), F = n => socForm.elements.namedItem(n);
+let socOpen = false, socStep = 'welcome', socEntry = null, wheelRot = 0, wheelSpinning = false;
+
+function cardSVG() {
+  const q = (a, c, b, s) => a * (1 - s) * (1 - s) + 2 * c * (1 - s) * s + b * s * s;
+  let wreath = '';
+  for (const side of [-1, 1]) {
+    const X = x => 160 + side * (160 - x);
+    const P0 = [155, 140], C = [112, 137], P1 = [121, 92];
+    wreath += `<path d="M${X(P0[0])} ${P0[1]} Q${X(C[0])} ${C[1]} ${X(P1[0])} ${P1[1]}" fill="none" stroke="#2b6e33" stroke-width="1.8" stroke-linecap="round"/>`;
+    for (let i = 0; i < 9; i++) {
+      const s = 0.08 + i * 0.105, x = q(P0[0], C[0], P1[0], s), y = q(P0[1], C[1], P1[1], s);
+      const dx = 2 * (1 - s) * (C[0] - P0[0]) + 2 * s * (P1[0] - C[0]), dy = 2 * (1 - s) * (C[1] - P0[1]) + 2 * s * (P1[1] - C[1]);
+      const ang = Math.atan2(dy, dx) * 180 / Math.PI;
+      for (const k of [-1, 1]) wreath += `<ellipse cx="${X(x).toFixed(1)}" cy="${y.toFixed(1)}" rx="5.2" ry="2.1" fill="#2f8a3a" transform="rotate(${(side * -(ang) + (side < 0 ? 180 : 0) + k * 38).toFixed(1)} ${X(x).toFixed(1)} ${y.toFixed(1)})"/>`;
+      if (i % 2 === 0) {
+        const nx = -dy, ny = dx, l = Math.hypot(nx, ny) || 1, fx = X(x + (nx / l) * 5.5 * -1), fy = y + (ny / l) * 5.5 * -1;
+        wreath += `<circle cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" r="2.9" fill="#ffcc33"/><circle cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" r="1.1" fill="#c26a00"/>`;
+      }
+    }
+  }
+  const star = Array.from({ length: 10 }, (_, i) => { const r = i % 2 ? 8.5 : 21, a = -Math.PI / 2 + i * Math.PI / 5; return (160 + r * Math.cos(a)).toFixed(1) + ',' + (103 + r * Math.sin(a)).toFixed(1); }).join(' ');
+  const tail = s => { const X = x => s < 0 ? x : 320 - x; return `<polygon points="${X(55)},76 ${X(36)},71 ${X(45)},83 ${X(38)},95 ${X(60)},91" fill="#c99312"/>`; };
+  return `<svg viewBox="0 0 320 202" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="North Star Society member card">
+  <defs>
+    <radialGradient id="nsBlue" cx="50%" cy="42%" r="78%"><stop offset="0" stop-color="#2f60ef"/><stop offset=".55" stop-color="#1733b0"/><stop offset="1" stop-color="#0a1660"/></radialGradient>
+    <linearGradient id="nsGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset=".5" stop-color="#ffcc33"/><stop offset="1" stop-color="#d59a12"/></linearGradient>
+    <path id="nsArc" d="M56 84 Q160 25 264 84"/>
+  </defs>
+  <rect width="320" height="202" rx="14" fill="url(#nsBlue)"/>
+  <rect x="7" y="7" width="306" height="188" rx="9" fill="none" stroke="url(#nsGold)" stroke-width="1.6"/>
+  ${tail(-1)}${tail(1)}
+  <path d="M52 74 Q160 14 268 74 L262 92 Q160 34 58 92 Z" fill="url(#nsGold)"/>
+  <text font-family='"Press Start 2P",monospace' font-size="10" fill="#0a1660" dominant-baseline="middle"><textPath href="#nsArc" startOffset="50%" text-anchor="middle">NORTH STAR SOCIETY</textPath></text>
+  ${wreath}
+  <polygon points="${star}" fill="#fff"/>
+  <text x="160" y="161" text-anchor="middle" font-family='"Press Start 2P",monospace' font-size="6" letter-spacing="2" fill="#ffcc33">MEMBER</text>
+  <text id="soc-card-name" x="160" y="176" text-anchor="middle" font-family='"Press Start 2P",monospace' font-size="10" fill="#fff">YOUR NAME</text>
+  <text id="soc-card-no" x="20" y="189" font-family='"Press Start 2P",monospace' font-size="6" fill="#ffcc33">NO. ----</text>
+  <text x="300" y="189" text-anchor="end" font-family='"Press Start 2P",monospace' font-size="6" fill="#cfd8ff">MILES LOW · 702</text>
+</svg>`;
+}
+$('soc-card').innerHTML = cardSVG();
+$('soc-prize-list').innerHTML = SOC_PRIZES.map(p => `<li><i style="background:${p.col}"></i>${p.name}</li>`).join('');
+function setCard(name, no) {
+  const n = (name || '').trim().toUpperCase().slice(0, 20);
+  $('soc-card-name').textContent = n || 'YOUR NAME';
+  $('soc-card-no').textContent = 'NO. ' + (no ? String(no).padStart(4, '0') : '----');
+}
+function socShow(step) {
+  socStep = step;
+  soc.querySelectorAll('[data-step]').forEach(el => { el.hidden = !el.dataset.step.split(' ').includes(step); });
+  $('soc-preview').hidden = !(socEntry && socEntry.preview && step === 'done');
+  soc.scrollTop = 0;
+  const h = soc.querySelector(`[data-step~="${step}"][tabindex="-1"]`); if (h) h.focus({ preventScroll: true });
+  if (step === 'spin') drawWheel();
+}
+function socLoad() { try { const j = JSON.parse(localStorage.getItem(SOC_KEY) || 'null'); return j && !j.preview ? j : null; } catch (e) { return null; } }
+function socSave(e) { try { if (!e.preview) localStorage.setItem(SOC_KEY, JSON.stringify(e)); } catch (err) {} }
+function openSociety() {
+  setState('society'); socOpen = true;
+  keys.left = keys.right = keys.jump = false;
+  soc.classList.add('on'); soc.setAttribute('aria-hidden', 'false');
+  const saved = socLoad();
+  if (saved) { socEntry = saved; setCard(saved.name, saved.member); socDone(true); }
+  else { setCard('', 0); socShow('welcome'); }
+}
+function closeSociety() {
+  socOpen = false; soc.classList.remove('on'); soc.setAttribute('aria-hidden', 'true');
+  setState('title');
+}
+function socDone(returning) {
+  const e = socEntry, pr = SOC_PRIZES[e.prize], first = (e.name || '').trim().split(/\s+/)[0] || 'friend';
+  setCard(e.name, e.member);
+  $('soc-done-tag').textContent = returning || e.already ? '★ ALREADY A MEMBER ★' : '★ YOU WON ★';
+  $('soc-won-title').innerHTML = pr.name.toUpperCase().replace(/NORTH STAR|MILES LOW/g, m => '<em>' + m + '</em>');
+  $('soc-done-copy').textContent = (returning || e.already)
+    ? `You're already in the Society, ${first}. Your prize is locked in. We'll reach out at ${e.email} to set it up.`
+    : `Welcome in, ${first}. You're officially a member of the North Star Society. We'll reach out at ${e.email} to set up your prize.`;
+  socShow('done');
+}
+function socPreviewEntry(d) {   // used only where there's no server (the preview page): same odds as the default server odds
+  const w = [40, 25, 20, 10, 5]; let r = Math.random() * 100, i = 0;
+  while (r >= w[i]) { r -= w[i]; i++; }
+  return { ok: true, prize: i, member: 0, preview: true, name: d.name, email: d.email };
+}
+$('soc-go').addEventListener('click', () => { sfx.select(); socShow('join'); });
+F('name').addEventListener('input', () => setCard(F('name').value, 0));
+socForm.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const d = { name: F('name').value.trim(), email: F('email').value.trim(), phone: F('phone').value.trim(), consent: F('consent').checked, website: F('website').value };
+  const err = $('soc-err'), digits = d.phone.replace(/\D/g, '');
+  if (d.name.length < 2) { err.textContent = 'Add your name.'; F('name').focus(); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email)) { err.textContent = 'That email doesn\'t look right.'; F('email').focus(); return; }
+  if (digits.length < 10 || digits.length > 15) { err.textContent = 'Add a phone number with area code.'; F('phone').focus(); return; }
+  err.textContent = ''; const btn = $('soc-submit'); btn.disabled = true; btn.textContent = 'JOINING…';
+  let res;
+  try {
+    const r = await fetch('api/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
+    if (r.status === 404 || r.status === 405 || r.status === 501) res = socPreviewEntry(d);
+    else { res = await r.json().catch(() => null); if (!r.ok || !res || !res.ok) { err.textContent = (res && res.error) || 'Something went wrong. Try again.'; res = null; } }
+  } catch (e) { res = socPreviewEntry(d); }
+  btn.disabled = false; btn.textContent = 'JOIN FREE & SPIN ▸';
+  if (!res) return;
+  socEntry = { name: d.name, email: d.email, prize: res.prize, member: res.member, preview: !!res.preview, already: !!res.already };
+  setCard(d.name, res.member);
+  if (res.already) { socSave(socEntry); socDone(false); return; }
+  $('soc-spin').disabled = false;
+  $('soc-spin-copy').textContent = 'Card activated. Every spin wins something. Tap SPIN.';
+  socShow('spin');
+});
+$('soc-spin').addEventListener('click', () => {
+  if (wheelSpinning || !socEntry) return;
+  wheelSpinning = true; $('soc-spin').disabled = true; audioOn();
+  const seg = 360 / SOC_PRIZES.length, jit = (Math.random() - 0.5) * seg * 0.6;
+  const want = -(socEntry.prize * seg + seg / 2 + jit), from = wheelRot;
+  const to = from + 360 * 6 + (((want - from) % 360) + 360) % 360, dur = 5200, t0 = performance.now();
+  let lastSeg = -1;
+  const step = now => {
+    const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 4);
+    wheelRot = from + (to - from) * e;
+    const under = Math.floor((((-wheelRot) % 360) + 360) % 360 / seg);
+    if (under !== lastSeg) { if (lastSeg >= 0) tone(880, null, 0.03, 'square', 0.03); lastSeg = under; }
+    drawWheel(now);
+    if (k < 1) requestAnimationFrame(step);
+    else { wheelSpinning = false; sfx.clear(); socSave(socEntry); setTimeout(() => socDone(false), 900); }
+  };
+  requestAnimationFrame(step);
+});
+$('soc-again').addEventListener('click', () => { sfx.select(); closeSociety(); });
+function drawWheel(now = performance.now()) {
+  const c = $('soc-wheel'), g = c.getContext('2d'), S = c.width, cx = S / 2, R = S / 2 - 8, n = SOC_PRIZES.length, seg = Math.PI * 2 / n;
+  g.clearRect(0, 0, S, S);
+  g.fillStyle = '#100c22'; g.beginPath(); g.arc(cx, cx, R, 0, Math.PI * 2); g.fill();
+  const r = R - 26, base = -Math.PI / 2 + wheelRot * Math.PI / 180;
+  SOC_PRIZES.forEach((p, i) => {
+    const a0 = base + i * seg;
+    g.fillStyle = p.col; g.beginPath(); g.moveTo(cx, cx); g.arc(cx, cx, r, a0, a0 + seg); g.closePath(); g.fill();
+    g.strokeStyle = '#100c22'; g.lineWidth = 5; g.stroke();
+    g.save(); g.translate(cx, cx); g.rotate(a0 + seg / 2);
+    g.font = '22px "Press Start 2P", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = p.ink;
+    p.short.forEach((l, j) => g.fillText(l, r * 0.62, (j - (p.short.length - 1) / 2) * 30));
+    g.restore();
+  });
+  const on = Math.floor(now / 140) % 2;
+  for (let i = 0; i < 20; i++) {
+    const a = i / 20 * Math.PI * 2, lit = (i % 2) === on || !wheelSpinning;
+    g.fillStyle = lit ? '#fff2a8' : '#6a5a2a'; g.beginPath(); g.arc(cx + Math.cos(a) * (R - 13), cx + Math.sin(a) * (R - 13), 6, 0, Math.PI * 2); g.fill();
+  }
+}
 
 /* ---------------- loop ---------------- */
 let last = performance.now(), acc = 0;
