@@ -7,8 +7,9 @@
 //                                         and powers the CSV download at /api/entries.
 //   SOCIETY_WEBHOOK_URL                   Optional. Every sign-up is also POSTed here as JSON
 //                                         (GoHighLevel inbound webhook, Zapier, Make, a Google Sheets Apps Script...).
-//   PRIZE_WEIGHTS                         Optional odds, in prize order. Default "40,25,20,10,5".
-//   PRIZE_LIMITS                          Optional max winners per prize, 0 = unlimited. Default "0,0,0,20,10".
+//   PRIZE_WEIGHTS                         Optional odds (percent), in prize order. Default "0.34,0.33,0.33,4,95":
+//                                         Zoom call 95%, live session 4%, the other three split the last 1%.
+//   PRIZE_LIMITS                          Optional max winners per prize, 0 = unlimited. Default no limits.
 //                                         Limits need Redis to count; when a prize runs out it leaves the wheel.
 const crypto = require('crypto');
 
@@ -20,8 +21,8 @@ const PRIZES = [
   { id: 'zoom', name: '10-minute Zoom call with Miles Low' },
 ];
 const list = (v, d) => { const a = String(v || d).split(',').map(x => Number(x.trim())); return PRIZES.map((_, i) => (Number.isFinite(a[i]) && a[i] >= 0 ? a[i] : 0)); };
-const WEIGHTS = list(process.env.PRIZE_WEIGHTS, '40,25,20,10,5');
-const LIMITS = list(process.env.PRIZE_LIMITS, '0,0,0,20,10');
+const WEIGHTS = list(process.env.PRIZE_WEIGHTS, '0.34,0.33,0.33,4,95');
+const LIMITS = list(process.env.PRIZE_LIMITS, '0,0,0,0,0');
 
 const R_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const R_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;

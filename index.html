@@ -7,7 +7,7 @@
 <title>North Star</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
 /* Layout: one-screen arcade cabinet. Game canvas centered on a dark field, touch pad underneath on phones. */
 :root{
@@ -52,6 +52,49 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
 .pad svg{width:22px;height:22px;fill:currentColor}
 @media (pointer:coarse){.pad{display:flex}.hint{display:none}}
 
+/* ---------- Cover page + instructions (title screen) ---------- */
+.cover{position:fixed;inset:0;z-index:15;display:none;background:#08071a;overflow:hidden}
+.cover.on{display:block}
+.cover picture,.cover-art{position:absolute;inset:0;width:100%;height:100%}
+.cover-art{object-fit:contain;object-position:center top}
+.cover-ui{position:absolute;left:0;right:0;bottom:0;padding:0 16px max(14px,env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:10px;
+  background:linear-gradient(to bottom,rgba(8,7,26,0),rgba(8,7,26,.85) 45%)}
+.cover-go{grid-column:2;justify-self:center;margin-bottom:34px;font:inherit;font-size:13px;letter-spacing:.08em;color:#100c22;background:var(--accent);
+  border:0;border-bottom:5px solid #b8860b;border-radius:8px;padding:16px 22px;white-space:nowrap;cursor:pointer;min-height:52px;box-shadow:0 0 0 3px #100c22,0 0 24px rgba(255,204,51,.45)}
+.cover-go.gate{animation:coverPulse 1.1s ease-in-out infinite}
+.cover-go:disabled{background:#3a3260;color:#cfc3e0;border-bottom-color:#241e44;box-shadow:0 0 0 3px #100c22;animation:none;cursor:default}
+@keyframes coverPulse{50%{transform:scale(1.05);box-shadow:0 0 0 3px #100c22,0 0 36px rgba(255,204,51,.75)}}
+.cover-info{grid-column:1;justify-self:start;display:flex;align-items:center;gap:8px;font:inherit;font-size:9px;letter-spacing:.12em;color:var(--fg);
+  background:rgba(16,12,34,.7);border:2px solid var(--pad-edge);border-radius:8px;padding:10px 12px;cursor:pointer;min-height:44px}
+.cover-info svg{width:16px;height:16px;fill:currentColor}
+.cover-badge{grid-column:3;justify-self:end;width:58px;border:3px solid #f3ead8;background:#100c22;color:#f3ead8;text-align:center;line-height:1;padding:5px 0 6px;box-shadow:0 0 0 2px #000}
+.cover-badge small{display:block;font-size:6px;letter-spacing:.14em;margin-bottom:5px}
+.cover-badge b{display:block;font-weight:400;font-size:17px;color:var(--accent)}
+.cover-foot{position:absolute;left:0;right:0;bottom:max(4px,env(safe-area-inset-bottom));text-align:center;font-size:7px;letter-spacing:.2em;color:var(--dim);pointer-events:none}
+.cover .mute{position:absolute;top:max(12px,env(safe-area-inset-top));right:12px;z-index:2}
+.cover-go:focus-visible,.cover-info:focus-visible,.howto button:focus-visible{outline:2px solid #3ee6ff;outline-offset:3px}
+.howto{position:absolute;inset:0;z-index:3;background:#050510;overflow-y:auto;-webkit-overflow-scrolling:touch;color:#ffd84a;-webkit-user-select:text;user-select:text}
+.howto[hidden]{display:none}
+.howto-in{max-width:620px;margin:0 auto;padding:64px 20px 48px;display:flex;flex-direction:column;gap:26px}
+.howto-x{position:fixed;top:max(12px,env(safe-area-inset-top));right:12px;width:44px;height:44px;background:none;border:0;color:#ffd84a;cursor:pointer;padding:8px}
+.howto-x svg{width:100%;height:100%;stroke:currentColor;stroke-width:2.4}
+.howto h2{margin:0;text-align:center;font-weight:400;font-size:clamp(13px,4vw,18px);line-height:1.6;color:#ffd84a;text-shadow:3px 3px 0 #5a2a00}
+.howto-story{margin:0;font-family:"VT323",ui-monospace,monospace;font-size:23px;line-height:1.45;color:#ffe680}
+.howto-story::after{content:'';display:inline-block;width:.55em;height:.9em;margin-left:4px;vertical-align:-2px;background:#ffd84a;animation:blinkCur 1s steps(1) infinite}
+@keyframes blinkCur{50%{opacity:0}}
+.howto hr{border:0;border-top:2px dashed rgba(255,216,74,.45);margin:0}
+.howto h3{margin:0 0 16px;text-align:center;font-weight:400;font-size:9px;letter-spacing:.2em;color:#cfc3e0}
+.howto-ctrl{display:flex;flex-wrap:wrap;justify-content:center;gap:22px 34px;text-align:center}
+.howto-ctrl div{display:flex;flex-direction:column;align-items:center;gap:10px;font-size:8px;letter-spacing:.12em;line-height:1.8;color:#ffd84a;max-width:170px}
+.kc{display:inline-grid;place-items:center;min-width:34px;height:34px;padding:0 8px;box-sizing:border-box;border:2px solid #ffd84a;border-bottom-width:5px;border-radius:6px;font-size:10px;color:#ffd84a;margin:0 2px}
+.kc.wide{min-width:96px}
+.howto-items{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:22px 14px;text-align:center}
+.howto-items li{display:flex;flex-direction:column;align-items:center;gap:8px}
+.howto-items img{height:46px;width:auto;image-rendering:pixelated}
+.howto-items b{font-weight:400;font-size:9px;letter-spacing:.1em;color:#f3ead8}
+.howto-items span{font-family:"VT323",ui-monospace,monospace;font-size:20px;line-height:1.1;color:#ffe680}
+.howto-back{align-self:center;font:inherit;font-size:11px;letter-spacing:.08em;color:#100c22;background:#ffd84a;border:0;border-bottom:5px solid #b8860b;border-radius:8px;padding:15px 20px;cursor:pointer;min-height:50px}
+
 /* ---------- North Star Society (reward screen after the true ending) ---------- */
 .society{position:fixed;inset:0;z-index:20;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;
   background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(44,85,224,.45),rgba(7,6,15,0) 70%),#07060f;
@@ -66,6 +109,8 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
 .society h1 em,.society h2 em{font-style:normal;color:var(--accent)}
 .soc-copy{font-family:var(--sans);font-size:16px;line-height:1.6;color:#d9d0ea;margin:0;max-width:46ch}
 .soc-copy b{color:var(--fg)}
+.card-video{width:min(290px,70vw);aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:#05050f;box-shadow:0 0 0 2px #ffcc33,0 24px 50px rgba(0,0,0,.6),0 0 40px rgba(44,85,224,.4)}
+.card-video video{width:100%;height:100%;object-fit:cover;display:block}
 .showroom{position:relative;width:100%;height:clamp(220px,62vw,286px);display:flex;justify-content:center;align-items:flex-end;perspective:900px}
 .showroom::before{content:'';position:absolute;inset:-10% -5% 0;pointer-events:none;
   background:radial-gradient(ellipse 38% 50% at 50% 48%,rgba(255,242,168,.17),rgba(255,242,168,0) 72%),radial-gradient(ellipse 30% 30% at 50% 50%,rgba(44,85,224,.25),rgba(44,85,224,0) 70%)}
@@ -133,6 +178,47 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
   <button id="btn-jump" class="jump" data-k="jump" aria-label="Jump">JUMP</button>
 </div>
 
+<section class="cover on" id="cover" aria-label="North Star title screen">
+  <picture>
+    <source media="(orientation: portrait)" srcset="images/cover-phone.webp">
+    <img class="cover-art" src="images/cover-desktop.webp" alt="NORTH STAR: Brightest in the Skyline. Miles Low on a Las Vegas rooftop with the North Star flag as a cape.">
+  </picture>
+  <button class="mute" aria-label="Music on or off" aria-pressed="false"><svg viewBox="0 0 12 12"><path d="M4 2l7-1.5v8a1.8 1.8 0 1 1-1.2-1.7V3.2L5.2 4.1v5.4A1.8 1.8 0 1 1 4 7.8z"/></svg></button>
+  <div class="cover-ui">
+    <button class="cover-info" id="cover-info"><svg viewBox="0 0 16 16"><path d="M1 1h14v14H1zm2 2v10h10V3zm4 1h2v2H7zm0 3h2v5H7z"/></svg>INSTRUCTIONS</button>
+    <button class="cover-go gate" id="cover-go">TAP TO ENTER</button>
+    <div class="cover-badge" aria-label="Rated 702"><small>RATED</small><b>702</b></div>
+  </div>
+  <div class="cover-foot">NORTH STAR © 2026 MILES LOW</div>
+  <div class="howto" id="howto" role="dialog" aria-label="Instructions" hidden>
+    <button class="howto-x" id="howto-x" aria-label="Back to main menu"><svg viewBox="0 0 24 24" fill="none"><path d="M4 4l16 16M20 4L4 20"/></svg></button>
+    <div class="howto-in">
+      <h2 tabindex="-1" id="howto-h">THEY STOLE YOUR MASTERS</h2>
+      <p class="howto-story">AL G RHYTHM Records hacked your phone, swiped your masters, and locked you in the studio. Now you gotta bust out and run the whole city: Fremont Street, the Arts District, the Historic Westside, all the way down the Strip. Stack coins, grab three stars and the key card to open every exit, crack the label safes, and stomp the clones in suits. Then take the elevator to the penthouse and get back what's yours.</p>
+      <hr>
+      <div>
+        <h3>CONTROLS</h3>
+        <div class="howto-ctrl" id="howto-ctrl"></div>
+      </div>
+      <hr>
+      <div>
+        <h3>ITEMS</h3>
+        <ul class="howto-items">
+        <li><img src="images/item-coin.png" alt=""><b>COIN</b><span>100 coins = an extra life</span></li>
+        <li><img src="images/item-star.png" alt=""><b>STAR</b><span>Grab all 3 to open the exit</span></li>
+        <li><img src="images/item-keycard.png" alt=""><b>KEY CARD</b><span>Unlocks the exit door</span></li>
+        <li><img src="images/item-record.png" alt=""><b>GOLD RECORD</b><span>+1 life</span></li>
+        <li><img src="images/item-shades.png" alt=""><b>SHADES</b><span>Hater blockers: enemies can't see you</span></li>
+        <li><img src="images/item-master.png" alt=""><b>MASTER TAPE</b><span>Get all 7 back</span></li>
+        <li><img src="images/item-safe.png" alt=""><b>LABEL SAFE</b><span>Crack it open for a master</span></li>
+        </ul>
+      </div>
+      <hr>
+      <button class="howto-back" id="howto-back">◂ BACK TO MAIN MENU</button>
+    </div>
+  </div>
+</section>
+
 <section class="society" id="society" aria-label="North Star Society" aria-hidden="true">
   <div class="soc-wrap">
     <div class="soc-tag" data-step="welcome">★ ACCESS GRANTED ★</div>
@@ -145,7 +231,9 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
     <div data-step="done" class="soc-tag" id="soc-done-tag">★ YOU WON ★</div>
     <h2 data-step="done" tabindex="-1" id="soc-won-title"></h2>
 
-    <div class="showroom" data-step="welcome join done" aria-label="Your North Star Society card">
+    <div class="card-video" data-step="welcome"><video id="soc-video" poster="images/society-card-poster.webp" muted loop playsinline preload="none" aria-label="The North Star Society member card"><source src="images/society-card.mp4" type="video/mp4"><source src="images/society-card.webm" type="video/webm"></video></div>
+
+    <div class="showroom" data-step="join done" aria-label="Your North Star Society card">
       <div class="card3d"><div class="ns-card" id="soc-card"></div></div>
       <div class="pedestal"></div>
     </div>
@@ -164,7 +252,7 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
       <label class="chk"><input type="checkbox" name="consent"><span>Yes, text and email me North Star Society news and drops. Msg &amp; data rates may apply. Reply STOP to opt out.</span></label>
       <div class="soc-err" id="soc-err" role="alert"></div>
       <button class="soc-btn" type="submit" id="soc-submit">JOIN FREE &amp; SPIN ▸</button>
-      <p class="soc-fine">Free to join. No purchase necessary. One entry per person. We use your info to reach you about your prize.</p>
+      <p class="soc-fine">Free to join. No purchase necessary. One entry per person. Name, email and phone are required so we can reach every winner.</p>
     </form>
 
     <div class="wheel-box" data-step="spin">
@@ -280,16 +368,28 @@ const ready = im => im.complete && im.naturalWidth > 0;
 
 /* ---------------- music: Miles's beats, kept low under the game ---------------- */
 const MUSIC_VOL = 0.28;
-const TRACKS = { guess: 'audio/guess-whos-back.mp3', funk: 'audio/bay-area-funk.mp3', insidious: 'audio/insidious.mp3' };
-const MUSIC = {}; for (const k in TRACKS) { const a = new Audio(TRACKS[k]); a.loop = true; a.preload = 'auto'; a.volume = 0; MUSIC[k] = a; }
+// Title screen + instructions: Ten Toes. Opening story: Weatherman. Game: Boomerang, 500 Degrees, Ten Toes, Weatherman, then shuffle.
+const TRACKS = { tentoes: 'audio/ten-toes.mp3', weatherman: 'audio/weatherman.mp3', boomerang: 'audio/boomerang.mp3', degrees: 'audio/500-degrees.mp3' };
+const FIRST_LAP = ['boomerang', 'degrees', 'tentoes', 'weatherman'];
+const MUSIC = {};
+for (const k in TRACKS) { const a = new Audio(TRACKS[k]); a.preload = 'auto'; a.volume = 0; a.addEventListener('ended', () => { if (k === playlist.cur) nextTrack(); }); MUSIC[k] = a; }
+const playlist = { i: 0, cur: null };
+function nextTrack() {
+  playlist.i++;
+  let k = FIRST_LAP[playlist.i];
+  if (!k) { const pool = FIRST_LAP.filter(x => x !== playlist.cur); k = pool[Math.floor(Math.random() * pool.length)]; }
+  playlist.cur = k; MUSIC[k].currentTime = 0;
+}
+function startPlaylist() { playlist.i = 0; playlist.cur = FIRST_LAP[0]; MUSIC[playlist.cur].currentTime = 0; }
 let musicOn = true, musicUnlocked = false;
-const muteBtn = document.getElementById('mute');
-function toggleMusic() { musicOn = !musicOn; muteBtn.classList.toggle('off', !musicOn); muteBtn.setAttribute('aria-pressed', String(!musicOn)); }
-muteBtn.addEventListener('click', e => { e.stopPropagation(); audioOn(); toggleMusic(); });
+const muteBtns = document.querySelectorAll('.mute');
+function toggleMusic() { musicOn = !musicOn; muteBtns.forEach(b => { b.classList.toggle('off', !musicOn); b.setAttribute('aria-pressed', String(!musicOn)); }); }
+muteBtns.forEach(b => b.addEventListener('click', e => { e.stopPropagation(); audioOn(); toggleMusic(); }));
 function updateMusic(dt) {
   const want = musicOn && musicUnlocked ? musicKey() : null;
   for (const k in MUSIC) {
     const a = MUSIC[k], target = k === want ? MUSIC_VOL : 0;
+    a.loop = k !== playlist.cur || want !== playlist.cur;   // scene songs loop; playlist songs run to the end and hand off
     a.volume = clamp(a.volume + Math.sign(target - a.volume) * dt * 0.5, 0, MUSIC_VOL);
     if (target > 0 && a.paused) a.play().catch(() => {});
     if (target === 0 && a.volume === 0 && !a.paused) a.pause();
@@ -571,10 +671,11 @@ function spawn() {
   }
 }
 function startGame() {
+  playlist.cur = null;   // the in-game playlist starts over at Boomerang
   lives = 3; continues = 2; coinBank = 0; totals = { coins: 0, stars: 0 }; masters = 0; levelIndex = 0;
   playSlides(SLIDES, () => { loadLevel(0); setState('intro'); });
 }
-function setState(s) { state = s; stateT = 0; jumpPressed = false; startPressed = false; }
+function setState(s) { state = s; stateT = 0; jumpPressed = false; startPressed = false; syncCover(); }
 const themeAt = tx => (lv.theme2 && tx >= lv.split ? lv.theme2 : lv.theme);
 
 /* ---------------- tiles & collision (side levels) ---------------- */
@@ -873,16 +974,15 @@ function newRun() {
 }
 const CLEAR_LINES = ['YOU BROKE OUT OF THE STUDIO', 'DOWNTOWN IS WITH YOU', 'THE WESTSIDE IS WITH YOU', 'THE STRIP IS CHEERING YOUR NAME'];
 function musicKey() {
-  if (state === 'loading') return null;
-  if (state === 'title' || state === 'endTrue' || state === 'society' || (state === 'crawl' && slideSet === SLIDES)) return 'guess';
-  if (state === 'crawl' || state === 'deal' || state === 'endBad') return 'insidious';
-  if (state === 'clear') return 'funk';
-  return levelIndex >= 1 && levelIndex <= 3 ? 'funk' : 'insidious';
+  if (state === 'loading' || state === 'title') return 'tentoes';
+  if (state === 'crawl' && slideSet === SLIDES) return 'weatherman';
+  if (!playlist.cur) startPlaylist();
+  return playlist.cur;
 }
 function update(dt) {
   t += dt; stateT += dt;
   updateMusic(dt);
-  if (state === 'loading') { if (loaded >= toLoad && stateT > 0.4) setState('title'); }
+  if (state === 'loading') { coverButton(); if (loaded >= toLoad && stateT > 0.4) setState('title'); }
   else if (state === 'title') { if (startPressed) startGame(); }
   else if (state === 'crawl') {
     const typed = slideSet[crawlPage].text.length / 34;
@@ -1234,6 +1334,7 @@ const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'ri
 function choose(k) { if ((state === 'deal' || (state === 'over' && continues > 0)) && (k === 'left' || k === 'right')) { dealPick = k === 'left' ? 0 : 1; sfx.select(); } }
 addEventListener('keydown', e => {
   if (socOpen) return;   // the Society screen has real form fields; let typing through
+  if (coverOn()) { if (!e.repeat) coverKey(e); return; }
   const k = KEYMAP[e.code];
   if (k || e.code === 'Enter') e.preventDefault();
   audioOn();
@@ -1253,6 +1354,50 @@ document.querySelectorAll('.pad button').forEach(b => {
   b.addEventListener('contextmenu', e => e.preventDefault());
 });
 cv.addEventListener('pointerdown', () => { audioOn(); if (state !== 'play') startPressed = true; });
+
+/* ---------------- cover page (title screen) + instructions ---------------- */
+// The cover stays up while loading and on the title. The first tap "enters" (browsers only allow music after a tap), then START.
+let coverEntered = false;
+const coverOn = () => document.getElementById('cover').classList.contains('on');
+const howtoOpen = () => !document.getElementById('howto').hidden;
+function syncCover() {
+  const c = document.getElementById('cover'), on = state === 'loading' || state === 'title';
+  if (c.classList.contains('on') !== on) { c.classList.toggle('on', on); if (!on) showHowto(false); }
+  coverButton();
+}
+function coverButton() {
+  const b = document.getElementById('cover-go'), ready = state === 'title';
+  const label = !coverEntered ? (TOUCH ? 'TAP TO ENTER' : 'CLICK OR PRESS ENTER') : ready ? 'START GAME ▸' : 'LOADING ' + Math.round(100 * loaded / toLoad) + '%';
+  if (b.textContent !== label) b.textContent = label;
+  b.disabled = coverEntered && !ready;
+  b.classList.toggle('gate', !coverEntered);
+}
+function coverEnter() { if (!coverEntered) { coverEntered = true; audioOn(); coverButton(); } }
+function coverGo() {
+  if (!coverEntered) { coverEnter(); return; }
+  if (state !== 'title') return;
+  sfx.select(); startGame();
+}
+function showHowto(open) {
+  const h = document.getElementById('howto');
+  h.hidden = !open;
+  if (open) { coverEnter(); h.scrollTop = 0; document.getElementById('howto-h').focus({ preventScroll: true }); }
+  else if (coverOn()) document.getElementById('cover-info').focus({ preventScroll: true });
+}
+document.getElementById('howto-ctrl').innerHTML = TOUCH
+  ? '<div><span><span class="kc">◀</span><span class="kc">▶</span></span>SLIDE TO MOVE</div><div><span class="kc wide">JUMP</span>TAP AGAIN IN THE AIR TO DOUBLE JUMP</div><div><span class="kc">♪</span>MUSIC ON / OFF</div>'
+  : '<div><span><span class="kc">←</span><span class="kc">→</span></span>MOVE (OR A / D)</div><div><span class="kc wide">SPACE</span>JUMP · PRESS AGAIN IN THE AIR TO DOUBLE JUMP</div><div><span class="kc wide">ENTER</span>START / CONTINUE</div><div><span class="kc">M</span>MUSIC ON / OFF</div>';
+document.getElementById('cover-go').addEventListener('click', coverGo);
+document.getElementById('cover-info').addEventListener('click', () => { sfx.select(); showHowto(true); });
+document.getElementById('howto-x').addEventListener('click', () => showHowto(false));
+document.getElementById('howto-back').addEventListener('click', () => { sfx.select(); showHowto(false); });
+document.getElementById('cover').addEventListener('pointerdown', e => { if (!e.target.closest('#cover-go')) coverEnter(); });
+function coverKey(e) {
+  if (e.code === 'KeyM') { coverEnter(); toggleMusic(); return; }
+  if (howtoOpen()) { if (e.code === 'Escape' || e.code === 'Backspace') { e.preventDefault(); showHowto(false); } return; }
+  if (e.code === 'Enter' || e.code === 'Space') { if (e.target.closest && e.target.closest('button')) return; e.preventDefault(); coverGo(); }   // a focused button clicks itself
+  else if (e.code === 'KeyI') showHowto(true);
+}
 
 /* ---------------- North Star Society: reward screen after turning down the deal ---------------- */
 // Prize order must match api/join.js. The server picks the prize; the wheel just lands on it.
@@ -1308,7 +1453,7 @@ function cardSVG() {
 </svg>`;
 }
 $('soc-card').innerHTML = cardSVG();
-$('soc-prize-list').innerHTML = SOC_PRIZES.map(p => `<li><i style="background:${p.col}"></i>${p.name}</li>`).join('');
+$('soc-prize-list').innerHTML = SOC_PRIZES.slice().reverse().map(p => `<li><i style="background:${p.col}"></i>${p.name}</li>`).join('');
 function setCard(name, no) {
   const n = (name || '').trim().toUpperCase().slice(0, 20);
   $('soc-card-name').textContent = n || 'YOUR NAME';
@@ -1329,11 +1474,12 @@ function openSociety() {
   keys.left = keys.right = keys.jump = false;
   soc.classList.add('on'); soc.setAttribute('aria-hidden', 'false');
   const saved = socLoad();
+  const v = $('soc-video'); v.currentTime = 0; v.play().catch(() => {});
   if (saved) { socEntry = saved; setCard(saved.name, saved.member); socDone(true); }
   else { setCard('', 0); socShow('welcome'); }
 }
 function closeSociety() {
-  socOpen = false; soc.classList.remove('on'); soc.setAttribute('aria-hidden', 'true');
+  socOpen = false; $('soc-video').pause(); soc.classList.remove('on'); soc.setAttribute('aria-hidden', 'true');
   setState('title');
 }
 function socDone(returning) {
@@ -1347,7 +1493,7 @@ function socDone(returning) {
   socShow('done');
 }
 function socPreviewEntry(d) {   // used only where there's no server (the preview page): same odds as the default server odds
-  const w = [40, 25, 20, 10, 5]; let r = Math.random() * 100, i = 0;
+  const w = [0.34, 0.33, 0.33, 4, 95]; let r = Math.random() * 100, i = 0;
   while (r >= w[i]) { r -= w[i]; i++; }
   return { ok: true, prize: i, member: 0, preview: true, name: d.name, email: d.email };
 }
