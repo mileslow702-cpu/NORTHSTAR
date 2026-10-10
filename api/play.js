@@ -1,6 +1,6 @@
 // Player sign-in before the game starts (POST /api/play): name + email.
-// Saved to the same Upstash Redis store as the Society (one row per email), forwarded to PLAYER_WEBHOOK_URL
-// (or SOCIETY_WEBHOOK_URL) if set, and downloadable at /api/entries?key=ADMIN_KEY&list=players
+// Saved to the same Upstash Redis store as the Society (one row per email) if connected, forwarded to
+// SIGNUP_WEBHOOK_URL (the Google Sheet) if set, and downloadable at /api/entries?key=ADMIN_KEY&list=players
 const R_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const R_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 async function redis(cmd) {
@@ -31,7 +31,7 @@ module.exports = async (req, res) => {
     } catch (e) { console.error('player storage error', e); }
   }
   console.log('NORTH STAR PLAYER', JSON.stringify(entry), isNew ? 'new' : 'returning');
-  const hook = process.env.PLAYER_WEBHOOK_URL || process.env.SOCIETY_WEBHOOK_URL;
+  const hook = process.env.SIGNUP_WEBHOOK_URL;
   if (hook && isNew) {
     try { await fetch(hook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry), signal: AbortSignal.timeout(5000) }); }
     catch (e) { console.error('player webhook error', e); }

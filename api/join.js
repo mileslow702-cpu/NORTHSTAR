@@ -5,7 +5,7 @@
 //   KV_REST_API_URL + KV_REST_API_TOKEN   Upstash Redis (Vercel Marketplace > Upstash for Redis adds both automatically).
 //                                         Stores every member, blocks repeat entries, enforces prize limits,
 //                                         and powers the CSV download at /api/entries.
-//   SOCIETY_WEBHOOK_URL                   Optional. Every sign-up is also POSTed here as JSON
+//   SIGNUP_WEBHOOK_URL                    Optional. Every sign-up is also POSTed here as JSON
 //                                         (GoHighLevel inbound webhook, Zapier, Make, a Google Sheets Apps Script...).
 //   PRIZE_WEIGHTS                         Optional odds (percent), in prize order. Default "0.34,0.33,0.33,4,95":
 //                                         Zoom call 95%, live session 4%, the other three split the last 1%.
@@ -60,7 +60,7 @@ module.exports = async (req, res) => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return res.status(400).json({ ok: false, error: "That email doesn't look right." });
   if (phone.length < 11 || phone.length > 15) return res.status(400).json({ ok: false, error: 'Add a phone number with area code.' });
 
-  const entry = { name, email, phone: '+' + phone, consent: !!b.consent, createdAt: new Date().toISOString(), source: 'north-star-game' };
+  const entry = { type: 'society', name, email, phone: '+' + phone, consent: !!b.consent, createdAt: new Date().toISOString(), source: 'north-star-game' };
   const useRedis = !!(R_URL && R_TOKEN);
   try {
     if (useRedis) {
@@ -93,9 +93,9 @@ module.exports = async (req, res) => {
   }
 
   console.log('NORTH STAR SOCIETY SIGNUP', JSON.stringify(entry));   // also visible in Vercel > Logs
-  if (process.env.SOCIETY_WEBHOOK_URL) {
+  if (process.env.SIGNUP_WEBHOOK_URL) {
     try {
-      await fetch(process.env.SOCIETY_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry), signal: AbortSignal.timeout(5000) });
+      await fetch(process.env.SIGNUP_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry), signal: AbortSignal.timeout(5000) });
     } catch (e) { console.error('society webhook error', e); }
   }
   return res.status(200).json({ ok: true, prize: entry.prize, prizeName: entry.prizeName, member: entry.member });
