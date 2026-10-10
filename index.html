@@ -210,7 +210,7 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
       <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
       <div class="soc-err" id="gate-err" role="alert"></div>
       <button class="soc-btn" type="submit" id="gate-go">PLAY ▸</button>
-      <p class="soc-fine">You'll get North Star news by email. Unsubscribe anytime.</p>
+      <p class="soc-fine">You'll get North Star news by email. Unsubscribe anytime. We keep your game stats with your sign-up.</p>
     </form>
   </div>
   <div class="howto" id="howto" role="dialog" aria-label="Instructions" hidden>
@@ -711,6 +711,7 @@ function loadLevel(i) {
   } else lv.coinsTotal = 0;
   lv.coinsGot = 0; lv.starsGot = 0;
   spawn();
+  trackLevel(i);
 }
 function spawn() {
   p = { x: 0, y: 0, w: 14, h: 36, vx: 0, vy: 0, onGround: true, face: -1, coyote: 0, buffer: 0, anim: 0, inv: 0, shades: 0, climb: null, airJumps: 1, airT: 0 };
@@ -730,7 +731,7 @@ function startGame() {
   lives = 3; continues = 2; coinBank = 0; totals = { coins: 0, stars: 0 }; masters = 0; levelIndex = 0;
   playSlides(SLIDES, () => { loadLevel(0); setState('intro'); });
 }
-function setState(s) { state = s; stateT = 0; jumpPressed = false; startPressed = false; syncCover(); }
+function setState(s) { state = s; stateT = 0; jumpPressed = false; startPressed = false; syncCover(); trackState(s); }
 const themeAt = tx => (lv.theme2 && tx >= lv.split ? lv.theme2 : lv.theme);
 
 /* ---------------- tiles & collision (side levels) ---------------- */
@@ -1036,6 +1037,7 @@ function musicKey() {
 }
 function update(dt) {
   t += dt; stateT += dt;
+  trackTick(dt);
   updateMusic(dt);
   if (state === 'loading') { coverButton(); if (loaded >= toLoad && stateT > 0.4) setState('title'); }
   else if (state === 'title') { if (startPressed) startGame(); }
@@ -1496,6 +1498,34 @@ function coverKey(e) {
   else if (e.code === 'KeyI') showHowto(true);
 }
 
+/* ---------------- play tracking -> Google Sheet (time played, furthest level, ending, prize, return visits) ---------------- */
+// One "session" per visit. Each update sends the whole snapshot, so a lost request never breaks the sheet.
+const SESSION = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 10), startedAt: new Date().toISOString(),
+  played: 0, levelNum: 0, level: '', ending: '', prize: '', sent: 0, playing: false };
+const ENDING_RANK = { '': 0, 'Game over': 1, 'Signed the contract': 2, 'Beat the game': 3 };
+function track() {
+  const pl = playerLoad(); if (!pl || !SESSION.playing) return;
+  SESSION.sent = SESSION.played;
+  fetch('api/track', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+    sessionId: SESSION.id, name: pl.name, email: pl.email, startedAt: SESSION.startedAt, minutes: Math.round(SESSION.played / 6) / 10,
+    levelNum: SESSION.levelNum, level: SESSION.level, ending: SESSION.ending, prize: SESSION.prize }) }).catch(() => {});
+}
+function trackLevel(i) {
+  SESSION.playing = true;
+  if (i + 1 > SESSION.levelNum) { SESSION.levelNum = i + 1; SESSION.level = (i + 1) + ' · ' + lv.name; track(); }
+}
+function trackState(s) {
+  const end = s === 'endTrue' ? 'Beat the game' : s === 'endBad' ? 'Signed the contract' : s === 'over' && continues <= 0 ? 'Game over' : '';
+  if (end && ENDING_RANK[end] > ENDING_RANK[SESSION.ending]) { SESSION.ending = end; track(); }
+}
+function trackPrize(name) { if (SESSION.prize !== name) { SESSION.prize = name; track(); } }
+function trackTick(dt) {
+  if (!SESSION.playing || state === 'loading' || state === 'title' || document.hidden) return;
+  SESSION.played += dt;
+  if (SESSION.played - SESSION.sent >= 120) track();   // every 2 minutes of play
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden && SESSION.played - SESSION.sent >= 5) track(); });
+
 /* ---------------- North Star Society: reward screen after turning down the deal ---------------- */
 // Prize order must match api/join.js. The server picks the prize; the wheel just lands on it.
 const SOC_PRIZES = [
@@ -1582,6 +1612,7 @@ function closeSociety() {
 }
 function socDone(returning) {
   const e = socEntry, pr = SOC_PRIZES[e.prize], first = (e.name || '').trim().split(/\s+/)[0] || 'friend';
+  if (!e.preview) trackPrize(pr.name);
   setCard(e.name, e.member);
   $('soc-done-tag').textContent = returning || e.already ? '★ ALREADY A MEMBER ★' : '★ YOU WON ★';
   $('soc-won-title').innerHTML = pr.name.toUpperCase().replace(/NORTH STAR|MILES LOW/g, m => '<em>' + m + '</em>');
