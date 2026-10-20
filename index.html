@@ -171,6 +171,8 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
   box-shadow:0 0 0 3px #ffcc33,0 6px 14px rgba(0,0,0,.5)}
 .wheel-hub:disabled{cursor:default}
 .soc-won{font-size:clamp(12px,3.6vw,15px);line-height:1.7;color:var(--accent);margin:0}
+.share-box{display:flex;flex-direction:column;align-items:center;gap:14px}
+.share-box img{width:min(220px,56vw);aspect-ratio:9/16;border-radius:10px;border:2px solid #ffcc33;box-shadow:0 14px 30px rgba(0,0,0,.55);background:#100c22}
 .soc-note{font-family:var(--sans);font-size:13px;color:#ffcc33;background:rgba(255,204,51,.08);border:1px dashed rgba(255,204,51,.4);border-radius:8px;padding:8px 10px;margin:0}
 </style>
 </head>
@@ -285,6 +287,10 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
     </div>
 
     <p class="soc-copy" data-step="done" id="soc-done-copy"></p>
+    <div class="share-box" data-step="done">
+      <img id="share-img" alt="Your North Star share card: name, time to beat the game, masters and coins">
+      <button class="soc-btn" id="share-go" type="button">SHARE MY CARD ▸</button>
+    </div>
     <p class="soc-note" id="soc-preview" hidden>Preview mode: this entry wasn't sent anywhere. Sign-ups save on the live site.</p>
     <button class="soc-btn" data-step="done" id="soc-again">PLAY AGAIN ▸</button>
     <figure class="soc-gallery" data-step="welcome done" style="margin:0">
@@ -728,6 +734,7 @@ function spawn() {
 }
 function startGame() {
   playlist.cur = null;   // the in-game playlist starts over at Boomerang
+  runTime = 0;
   lives = 3; continues = 2; coinBank = 0; totals = { coins: 0, stars: 0 }; masters = 0; levelIndex = 0;
   playSlides(SLIDES, () => { loadLevel(0); setState('intro'); });
 }
@@ -1451,6 +1458,34 @@ function coverGo() {
 }
 // Player sign-in before the story: name + email, saved to api/play. Ten Toes keeps playing until they submit.
 const PLAYER_KEY = 'ns-player-v1';
+/* Outbox: every sign-up and stat update is saved on the phone first and only removed once the server confirms
+   the sheet has it. Offline, a dropped connection, or a busy sheet just means it goes through on a later try. */
+const OUTBOX_KEY = 'ns-outbox-v1';
+let flushing = false;
+function outboxGet() { try { return JSON.parse(localStorage.getItem(OUTBOX_KEY) || '[]'); } catch (e) { return []; } }
+function outboxSet(q) { try { localStorage.setItem(OUTBOX_KEY, JSON.stringify(q.slice(-60))); } catch (e) {} }
+function send(path, body, key) {   // a newer update with the same key replaces the older one still waiting
+  outboxSet(outboxGet().filter(x => x.key !== key).concat({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), key, path, body }));
+  flushOutbox();
+}
+async function flushOutbox() {
+  if (flushing) return;
+  flushing = true;
+  try {
+    for (const item of outboxGet()) {
+      let done = false;
+      try {
+        const r = await fetch(item.path, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item.body) });
+        done = r.ok || r.status === 400 || r.status === 404 || r.status === 405;   // saved, or nothing to retry (bad data / no server)
+      } catch (e) {}
+      if (!done) break;
+      outboxSet(outboxGet().filter(x => x.id !== item.id));
+    }
+  } finally { flushing = false; }
+}
+setInterval(flushOutbox, 45000);
+addEventListener('online', flushOutbox);
+function sendPlayer(pl) { send('api/play', { name: pl.name, email: pl.email, signedUpAt: pl.at }, 'play:' + pl.email); }
 function playerLoad() { try { return JSON.parse(localStorage.getItem(PLAYER_KEY) || 'null'); } catch (e) { return null; } }
 function playerSave(p) { try { localStorage.setItem(PLAYER_KEY, JSON.stringify(p)); } catch (e) {} }
 const gateOpen = () => !document.getElementById('gate').hidden;
@@ -1461,19 +1496,15 @@ function showGate(open) {
 }
 function beginStory() { showGate(false); cutMusic(); startGame(); }   // kill every song, then Weatherman starts with the story
 document.getElementById('gate-x').addEventListener('click', () => showGate(false));
-document.getElementById('gate-form').addEventListener('submit', async ev => {
+document.getElementById('gate-form').addEventListener('submit', ev => {
   ev.preventDefault();
   const f = ev.target.elements, err = document.getElementById('gate-err'), btn = document.getElementById('gate-go');
   const d = { name: f.namedItem('name').value.trim(), email: f.namedItem('email').value.trim(), website: f.namedItem('website').value };
   if (d.name.length < 2) { err.textContent = 'Add your name.'; f.namedItem('name').focus(); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email)) { err.textContent = "That email doesn't look right."; f.namedItem('email').focus(); return; }
-  err.textContent = ''; btn.disabled = true; btn.textContent = 'LOADING…';
-  try {
-    const r = await fetch('api/play', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
-    if (r.status === 400) { const j = await r.json().catch(() => ({})); err.textContent = j.error || 'Check your info and try again.'; btn.disabled = false; btn.textContent = 'PLAY ▸'; return; }
-  } catch (e) {}   // no server (preview) or a network hiccup: never block someone from playing
-  btn.disabled = false; btn.textContent = 'PLAY ▸';
-  playerSave({ name: d.name, email: d.email });
+  err.textContent = '';
+  const pl = { name: d.name, email: d.email, at: new Date().toISOString(), sent: 2 };
+  playerSave(pl); sendPlayer(pl);
   beginStory();
 });
 function showHowto(open) {
@@ -1506,21 +1537,30 @@ const ENDING_RANK = { '': 0, 'Game over': 1, 'Signed the contract': 2, 'Beat the
 function track() {
   const pl = playerLoad(); if (!pl || !SESSION.playing) return;
   SESSION.sent = SESSION.played;
-  fetch('api/track', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-    sessionId: SESSION.id, name: pl.name, email: pl.email, startedAt: SESSION.startedAt, minutes: Math.round(SESSION.played / 6) / 10,
-    levelNum: SESSION.levelNum, level: SESSION.level, ending: SESSION.ending, prize: SESSION.prize }) }).catch(() => {});
+  send('api/track', { sessionId: SESSION.id, name: pl.name, email: pl.email, startedAt: SESSION.startedAt, minutes: Math.round(SESSION.played / 6) / 10,
+    levelNum: SESSION.levelNum, level: SESSION.level, ending: SESSION.ending, prize: SESSION.prize }, 'track:' + SESSION.id);
 }
+// On load: send anything still waiting, and re-send sign-ups from before the sheet existed (the sheet skips duplicates).
+{ const pl = playerLoad(); if (pl && pl.sent !== 2) { pl.sent = 2; playerSave(pl); sendPlayer(pl); } else flushOutbox(); }
 function trackLevel(i) {
   SESSION.playing = true;
   if (i + 1 > SESSION.levelNum) { SESSION.levelNum = i + 1; SESSION.level = (i + 1) + ' · ' + lv.name; track(); }
 }
+let runTime = 0;   // time on this run, for the share card
+const BEST_KEY = 'ns-best-v1';
+function bestLoad() { try { return JSON.parse(localStorage.getItem(BEST_KEY) || 'null'); } catch (e) { return null; } }
 function trackState(s) {
+  if (s === 'endTrue') {
+    const b = bestLoad(), now = { time: Math.round(runTime), coins: totals.coins, masters };
+    if (!b || now.time < b.time) try { localStorage.setItem(BEST_KEY, JSON.stringify(now)); } catch (e) {}
+  }
   const end = s === 'endTrue' ? 'Beat the game' : s === 'endBad' ? 'Signed the contract' : s === 'over' && continues <= 0 ? 'Game over' : '';
   if (end && ENDING_RANK[end] > ENDING_RANK[SESSION.ending]) { SESSION.ending = end; track(); }
 }
 function trackPrize(name) { if (SESSION.prize !== name) { SESSION.prize = name; track(); } }
 function trackTick(dt) {
   if (!SESSION.playing || state === 'loading' || state === 'title' || document.hidden) return;
+  if (state !== 'society' && state !== 'endTrue') runTime += dt;
   SESSION.played += dt;
   if (SESSION.played - SESSION.sent >= 120) track();   // every 2 minutes of play
 }
@@ -1610,9 +1650,42 @@ function closeSociety() {
   socOpen = false; $('soc-video').pause(); soc.classList.remove('on'); soc.setAttribute('aria-hidden', 'true');
   setState('title');
 }
+// 1080x1920 card for Instagram Stories: cover art, their name, time to beat it, masters, coins, and the game link.
+let shareFile = null;
+async function makeShareCard(e) {
+  const c = document.createElement('canvas'); c.width = 1080; c.height = 1920;
+  const g = c.getContext('2d'), F = n => n + 'px "Press Start 2P", monospace';
+  await Promise.all([document.fonts ? document.fonts.load(F(40)) : 0, new Promise(r => { const im = new Image(); im.onload = () => { g.drawImage(im, 0, 0, 1080, 1080 * im.naturalHeight / im.naturalWidth); r(); }; im.onerror = r; im.src = 'images/cover-phone.webp'; })]);
+  const fade = g.createLinearGradient(0, 1050, 0, 1400); fade.addColorStop(0, 'rgba(7,6,15,0)'); fade.addColorStop(1, 'rgba(7,6,15,.96)');
+  g.fillStyle = fade; g.fillRect(0, 1050, 1080, 350); g.fillStyle = 'rgba(7,6,15,.96)'; g.fillRect(0, 1400, 1080, 520);
+  const txt = (s, y, size, col, maxW = 980) => { g.font = F(size); g.textAlign = 'center'; g.textBaseline = 'top'; const w = g.measureText(s).width;
+    if (w > maxW) { size = Math.floor(size * maxW / w); g.font = F(size); } g.fillStyle = '#000'; g.fillText(s, 545, y + 5); g.fillStyle = col; g.fillText(s, 540, y); };
+  const b = bestLoad() || {}, mmss = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  txt('★ I BEAT NORTH STAR ★', 1250, 34, '#ffcc33');
+  txt((e.name || '').trim().toUpperCase().slice(0, 18), 1320, 60, '#f3ead8');
+  [['TIME', b.time ? mmss(b.time) : '--'], ['MASTERS', (b.masters ?? 7) + '/7'], ['COINS', String(b.coins ?? '--')]].forEach(([k, v], i) => {
+    const x = 190 + i * 350; g.textAlign = 'center';
+    g.strokeStyle = '#3a3260'; g.lineWidth = 4; g.strokeRect(x - 155, 1450, 310, 170);
+    g.font = F(22); g.fillStyle = '#a99bc2'; g.fillText(k, x, 1478);
+    g.font = F(44); g.fillStyle = '#ffcc33'; g.fillText(v, x, 1535);
+  });
+  txt(e.member ? 'NORTH STAR SOCIETY · NO. ' + String(e.member).padStart(4, '0') : 'NORTH STAR SOCIETY MEMBER', 1675, 26, '#3ee6ff');
+  txt('PLAY FREE: ' + location.host.toUpperCase(), 1745, 28, '#f3ead8');
+  txt('@MILESLOWMUSIC', 1810, 24, '#a99bc2');
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  shareFile = new File([blob], 'north-star-card.png', { type: 'image/png' });
+  $('share-img').src = URL.createObjectURL(blob);
+}
+$('share-go').addEventListener('click', async () => {
+  if (!shareFile) return;
+  const text = 'I beat NORTH STAR by Miles Low. Play free: ' + location.origin;
+  if (navigator.canShare && navigator.canShare({ files: [shareFile] })) { try { await navigator.share({ files: [shareFile], text }); } catch (e) {} return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(shareFile); a.download = 'north-star-card.png'; document.body.appendChild(a); a.click(); a.remove();
+});
 function socDone(returning) {
   const e = socEntry, pr = SOC_PRIZES[e.prize], first = (e.name || '').trim().split(/\s+/)[0] || 'friend';
   if (!e.preview) trackPrize(pr.name);
+  shareFile = null; makeShareCard(e);
   setCard(e.name, e.member);
   $('soc-done-tag').textContent = returning || e.already ? '★ ALREADY A MEMBER ★' : '★ YOU WON ★';
   $('soc-won-title').innerHTML = pr.name.toUpperCase().replace(/NORTH STAR|MILES LOW/g, m => '<em>' + m + '</em>');

@@ -12,6 +12,7 @@
 //   PRIZE_LIMITS                          Optional max winners per prize, 0 = unlimited. Default no limits.
 //                                         Limits need Redis to count; when a prize runs out it leaves the wheel.
 const crypto = require('crypto');
+const toSheet = require('./_sheet');
 
 const PRIZES = [
   { id: 'card', name: 'Signed North Star Society card' },
@@ -93,10 +94,7 @@ module.exports = async (req, res) => {
   }
 
   console.log('NORTH STAR SOCIETY SIGNUP', JSON.stringify(entry));   // also visible in Vercel > Logs
-  if (process.env.SIGNUP_WEBHOOK_URL) {
-    try {
-      await fetch(process.env.SIGNUP_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry), signal: AbortSignal.timeout(5000) });
-    } catch (e) { console.error('society webhook error', e); }
-  }
+  // Without the database, the sheet is the only record, so a winner only counts once the sheet has them.
+  if ((await toSheet(entry)) === 'fail' && !useRedis) return res.status(503).json({ ok: false, error: 'The Society is busy right now. Try again in a minute.' });
   return res.status(200).json({ ok: true, prize: entry.prize, prizeName: entry.prizeName, member: entry.member });
 };

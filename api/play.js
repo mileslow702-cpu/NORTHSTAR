@@ -9,6 +9,7 @@ async function redis(cmd) {
   if (j.error) throw new Error(j.error);
   return j.result;
 }
+const toSheet = require('./_sheet');
 const clean = (s, n) => String(s || '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, n);
 
 module.exports = async (req, res) => {
@@ -22,7 +23,10 @@ module.exports = async (req, res) => {
   if (name.length < 2) return res.status(400).json({ ok: false, error: 'Add your name.' });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return res.status(400).json({ ok: false, error: "That email doesn't look right." });
 
-  const entry = { type: 'player', name, email, createdAt: new Date().toISOString(), source: 'north-star-game' };
+  // signedUpAt: when they actually signed in on their phone (a retry can arrive later); trusted only if it's a sane, recent time
+  const now = Date.now(), at = Date.parse(b.signedUpAt);
+  const createdAt = at && at <= now + 5 * 60e3 && at > now - 365 * 864e5 ? new Date(at).toISOString() : new Date(now).toISOString();
+  const entry = { type: 'player', name, email, createdAt, source: 'north-star-game' };
   let isNew = true;
   if (R_URL && R_TOKEN) {
     try {
@@ -31,10 +35,6 @@ module.exports = async (req, res) => {
     } catch (e) { console.error('player storage error', e); }
   }
   console.log('NORTH STAR PLAYER', JSON.stringify(entry), isNew ? 'new' : 'returning');
-  const hook = process.env.SIGNUP_WEBHOOK_URL;
-  if (hook && isNew) {
-    try { await fetch(hook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry), signal: AbortSignal.timeout(5000) }); }
-    catch (e) { console.error('player webhook error', e); }
-  }
+  if ((await toSheet(entry)) === 'fail') return res.status(503).json({ ok: false });   // the game keeps it and retries
   return res.status(200).json({ ok: true });
 };

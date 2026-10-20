@@ -4,14 +4,19 @@ const PLAYER_COLS = ['First Seen', 'Name', 'Email', 'Visits', 'Minutes Played', 
 const SESSION_COLS = ['Started', 'Name', 'Email', 'Visit #', 'Minutes Played', 'Furthest Level', 'Ending', 'Prize', 'Last Update', 'Session ID'];
 const SOCIETY_COLS = ['Date', 'Name', 'Email', 'Phone', 'Texts OK', 'Prize'];
 const RANK = { 'Beat the game': 3, 'Signed the contract': 2, 'Game over': 1 };
+const TZ = 'America/Los_Angeles';            // Las Vegas time
+const DATE_FORMAT = 'm/d/yyyy h:mm am/pm';
+const DATE_COLS = { Players: ['A', 'J'], Sessions: ['A', 'I'], Society: ['A'] };
 
 function doPost(e) {
   const d = JSON.parse(e.postData.contents);
   const lock = LockService.getScriptLock();
-  lock.waitLock(20000);
+  lock.waitLock(8000);
   try {
+    setUp();
     if (d.type === 'society') {
-      tab('Society', SOCIETY_COLS).appendRow([new Date(d.createdAt), d.name, d.email, "'" + d.phone, d.consent ? 'Yes' : 'No', d.prizeName]);
+      const so = tab('Society', SOCIETY_COLS);
+      if (!rowOf(so, 3, d.email)) so.appendRow([new Date(d.createdAt), d.name, d.email, "'" + d.phone, d.consent ? 'Yes' : 'No', d.prizeName]);
     } else if (d.type === 'player') {
       const p = tab('Players', PLAYER_COLS);
       if (!rowOf(p, 3, d.email)) p.appendRow([new Date(d.createdAt), d.name, d.email, 0, 0, '', 'No', '', '', new Date(d.createdAt)]);
@@ -49,6 +54,17 @@ function session(d) {
   const pr = rowOf(p, 3, d.email);
   if (pr) p.getRange(pr, 4, 1, summary.length).setValues([summary]);
   else p.appendRow([new Date(d.startedAt), d.name, d.email].concat(summary));
+}
+
+// Once: put the sheet on Las Vegas time and show dates as e.g. 10/20/2026 3:45 pm.
+function setUp() {
+  const props = PropertiesService.getScriptProperties();
+  if (props.getProperty('setup') === 'v3') return;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  ss.setSpreadsheetTimeZone(TZ);
+  tab('Players', PLAYER_COLS); tab('Sessions', SESSION_COLS); tab('Society', SOCIETY_COLS);
+  for (const name in DATE_COLS) DATE_COLS[name].forEach(c => ss.getSheetByName(name).getRange(c + ':' + c).setNumberFormat(DATE_FORMAT));
+  props.setProperty('setup', 'v3');
 }
 
 function tab(name, cols) {
