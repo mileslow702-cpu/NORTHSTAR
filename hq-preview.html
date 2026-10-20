@@ -92,7 +92,9 @@ const CREW = [
 ];
 const MERCH_URL = 'https://mileslowmusic.com';
 const LEVELS = ['THE STUDIO', 'DOWNTOWN', 'HISTORIC WESTSIDE', 'THE STRIP', 'THE PENTHOUSE'];
-const CH2 = ['NORTHTOWN', 'BOULDER HIGHWAY', 'THE TUNNELS', 'THE BOT FARM', 'SPACE: ALGOL'];
+const CHAPTERS = [['CHAPTER 2 · THE UNDERGROUND', 'Northtown · Boulder Highway · the Tunnels · Boss: THE CURATOR'],
+  ['CHAPTER 3 · THE BOT FARMS', 'Los Angeles · Houston · Atlanta · New York · the Machine World · Boss: THE BOT FATHER'],
+  ['CHAPTER 4 · THE COSMIC WAR', 'Space · Boss: ALGOL, THE DEMON STAR']];
 
 /* ---------- the TV wall loops video like a barbershop TV ---------- */
 const tv = document.createElement('video');
@@ -226,7 +228,7 @@ function useThing(o) {
     openPanel('<h2>ELEVATOR</h2><p class="sub">Pick a floor. In the full game this drops you straight into the level.</p><ul class="rows">' +
       '<li><span>CHAPTER 1 · THE BREAKOUT<small>Replay any level</small></span></li>' +
       LEVELS.map((l, i) => `<li><span>${i + 1} · ${l}</span><a class="btn" href="index.html">PLAY</a></li>`).join('') +
-      '<li class="lock"><span>CHAPTER 2 · AS ABOVE, SO BELOW<small>' + CH2.join(' · ') + '</small></span><span class="btn ghost">SOON</span></li></ul>');
+      CHAPTERS.map(([n, d]) => `<li class="lock"><span>${n}<small>${d}</small></span><span class="btn ghost">SOON</span></li>`).join('') + '</ul>');
   } else if (o.id === 'jukebox') {
     const row = (s, i) => `<li><span>${s.title}</span><button class="btn" data-song="${i}">${jukeIdx === i && jukeAudio && !jukeAudio.paused ? 'PAUSE' : 'PLAY'}</button></li>`;
     openPanel('<h2>JUKEBOX</h2><p class="sub">Pick a song. Your full album, previews, and the mixtape go here.</p><ul class="rows">' + SONGS.map(row).join('') + '</ul>');

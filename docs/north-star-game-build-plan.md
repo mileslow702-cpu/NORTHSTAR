@@ -2,13 +2,13 @@
 
 *Build once: the whole game mapped out, so every piece fits the next. Last updated Oct 20, 2026.*
 
-**Release rule:** the expansion (HQ, Chapter 2, outfits, mini-games) ships to the live site all at once, when it's finished. Until then the live game stays as it is, and work in progress lives on a private preview and a separate GitHub branch that doesn't touch the live game.
+**Release rule:** the expansion (HQ, Chapters 2–4, outfits, mini-games) ships to the live site all at once, when it's finished. Until then the live game stays as it is, and work in progress lives on a private preview and a separate GitHub branch that doesn't touch the live game.
 
 ---
 
 ## The shape of the whole game
 
-**Cover → sign in (name + email) → Chapter 1: THE BREAKOUT → North Star Society card + prize → NORTH STAR HQ opens → Chapter 2, outfits, mini-games, the Studio, the content vault, and replaying Chapter 1 anytime.**
+**Cover → sign in (name + email) → Chapter 1: THE BREAKOUT → North Star Society card + prize → NORTH STAR HQ opens → Chapters 2, 3 and 4, outfits, mini-games, the Studio, the content vault, and replaying any chapter anytime.**
 
 Chapter 1 is what's live now: Studio → Downtown → Historic Westside → the Strip → the Penthouse climb → the contract choice → the Society.
 
@@ -30,7 +30,7 @@ HQ is a room you walk around in, top-down like Pokémon Red/Blue, but drawn rich
 
 | Spot | What it does |
 |---|---|
-| **Elevator** | Play the game: Chapter 1 (replay any level) and Chapter 2 |
+| **Elevator** | Play the game: every chapter, and replay any level |
 | **Jukebox** | A working jukebox: pick a song and it plays |
 | **TV wall** | Screens on the wall loop Miles Low videos the whole time, like a barbershop or smoke shop TV. Walk up to watch one with sound |
 | **Arcade** | Cabinets for the mini-games |
@@ -44,24 +44,34 @@ The people behind NORTH STAR: producers and featured artists stand around the st
 
 **Content stays easy to update:** videos as unlisted YouTube links, songs as audio files or Bandcamp/EVEN links, and the Studio crew as a simple list. Adding something doesn't require rebuilding the game.
 
-## 3. Chapter 2: AS ABOVE, SO BELOW
+## 3. The chapters: each one has its own world and its own boss
 
-**Premise:** AL G RHYTHM Records was only the front. Before Miles can drop the album his way, the masters get leaked to THE STREAM. The trail goes through the parts of Vegas Chapter 1 never touched, then down into the tunnels under the city, out of Vegas, and up into space, where the real power behind it all is waiting. *Ownership over Algorithms. People over Playlists.*
+The trail behind the stolen masters goes deeper with every chapter: out of the studio, under the city, across the country, into the machines, and finally into space. *Ownership over Algorithms. People over Playlists.*
 
-| Level | Place | What's new |
+| Chapter | World | Boss |
 |---|---|---|
-| 1 | **Northtown** (North Las Vegas) | Home turf. Bot accounts and fake streamers replace the suits |
-| 2 | **Boulder Highway** | Night chase: an auto-running level, jump and dodge at speed |
-| 3 | **The Tunnels** (under the Strip) | Below the surface: dark flood tunnels lit by screens and a flashlight |
-| 4 | **The Bot Farm** (leaving Vegas) | Out into the desert: endless server racks running fake streams |
-| 5 | **Space** | Miles rises to the sky for the final fight |
+| **1 · THE BREAKOUT** (live) | Las Vegas: the Studio, Downtown, the Historic Westside, the Strip, the Penthouse | **The CEO of AL G RHYTHM Records** |
+| **2 · THE UNDERGROUND** | Parts of Vegas Chapter 1 never touched, then down into the tunnels under the city | **THE CURATOR** |
+| **3 · THE BOT FARMS** | Across the country, shutting down bot farms in other cities, then into the Machine World | **THE BOT FATHER** |
+| **4 · THE COSMIC WAR** | Space, dripped in cosmic Afrofuturism | **ALGOL, THE DEMON STAR** |
 
-**Bosses (bigger, multiple phases):**
-- **THE CURATOR** (the Tunnels): the underground nerd who runs the blogs and gossip sites and thinks he controls the narrative, but never comes outside. He hides in the dark behind a wall of monitors, firing hate comments as projectiles. Light is his weakness: knock out his screens and drag him into the light.
-- **THE BOT FARM** (leaving Vegas): a swarm of fake accounts that splits into smaller bots every time you hit it.
-- **ALGOL, THE DEMON STAR** (Space): the final boss and the mythos of Miles and the North Star. ALGOL is a real star, nicknamed the Demon Star (its name comes from the Arabic for "the demon's head"), and the name echoes "algorithm." The North Star is the one star that never moves, the defiant star everyone steers by. **As above, so below:** the tunnels under Vegas mirror the fight in the sky. The real ALGOL dims on a regular cycle because a second star passes in front of it, and that's the boss mechanic: it can only be hurt while it's dimmed.
+### Chapter 2 · THE UNDERGROUND
+- **Levels:** Northtown (North Las Vegas) → Boulder Highway (night chase, auto-running) → the Tunnels (the flood tunnels under the Strip, lit by screens and a flashlight) → the Curator's lair.
+- **Enemies:** the bloggers, the basement nerds, the hating tech bros. They live underground and hate from the dark.
+- **Boss: THE CURATOR.** He runs the blogs and gossip sites and thinks he controls the narrative, but he never comes outside. He hides behind a wall of monitors firing hate comments as projectiles. Light is his weakness: knock out his screens and drag him into the light.
 
-**Ending:** the North Star holds its place in the sky. Beating Chapter 2 unlocks exclusive vault content and a Chapter 2 share card.
+### Chapter 3 · THE BOT FARMS
+- **Levels:** Miles leaves Vegas and travels city to city, shutting down a bot farm in each one: rooms of phones and server racks pumping fake streams and fake hate. Suggested cities: **Los Angeles → Houston → Atlanta → New York**. Then the trail leads into **the Machine World**, the digital world all the farms feed.
+- **Enemies:** bot accounts that multiply when you ignore them, phone-rack turrets, spam drones.
+- **Boss: THE BOT FATHER.** He runs every farm from inside the Machine World. A huge swarm boss: hit him and he splits into smaller bots that rebuild him unless you clear them fast.
+
+### Chapter 4 · THE COSMIC WAR
+- **World:** Miles levels up and goes to space for a cosmic war, dripped and draped in cosmic Afrofuturism: gold-trimmed armor, star-map robes, ships shaped like crowns and pyramids, constellations as platforms.
+- **Story:** the mythos of Miles and the North Star. The North Star is the one star that never moves, the defiant star everyone steers by. **As above, so below:** the tunnels under Vegas mirror the war in the sky.
+- **Boss: ALGOL, THE DEMON STAR.** A real star, nicknamed the Demon Star (its name comes from the Arabic for "the demon's head"), and the name echoes "algorithm." The real ALGOL dims on a regular cycle because a second star passes in front of it, and that's the fight: it can only be hurt while it's dimmed.
+- **Outfits:** a cosmic Afrofuturist outfit set unlocks here, a future merch line.
+
+**Ending:** the North Star holds its place in the sky. Each finished chapter unlocks vault content and its own share card.
 
 ## 4. Outfits are real North Star merch
 
@@ -108,8 +118,9 @@ Each outfit is a real piece from the collection with its own perk, and the merch
 
 1. **HQ:** walkable main floor + Studio, elevator into Chapter 1, jukebox, TV wall, trophy wall, saving and restoring a card by email.
 2. **Merch rack outfits + Daily Spin + new power-ups.**
-3. **Chapter 2, levels 1–3** + THE CURATOR.
-4. **Chapter 2, levels 4–5** + THE BOT FARM + ALGOL + Rap Battle.
+3. **Chapter 2 · THE UNDERGROUND** + THE CURATOR.
+4. **Chapter 3 · THE BOT FARMS** + THE BOT FATHER + Rap Battle.
+5. **Chapter 4 · THE COSMIC WAR** + ALGOL + the cosmic outfit set.
 
 ## 9. What's needed from Miles
 
@@ -118,7 +129,8 @@ Each outfit is a real piece from the collection with its own perk, and the merch
 - **TV wall videos:** links to music videos, performances, BTS, the listening party replay.
 - **Jukebox songs:** which songs, and which are free previews vs. members-only.
 - **Merch store link** for the "get the real one" buttons.
-- **Instrumentals** for the five Chapter 2 levels and the Rap Battle.
+- **Instrumentals** for each chapter's levels and the Rap Battle.
+- **Chapter 3 cities:** confirm Los Angeles, Houston, Atlanta and New York, or swap in others.
 - **Decide** whether physical Tap Cards / Vol. 01 cards carry unlock codes.
 
 **Already shipped (Oct 20):** the share card (Instagram Story image after beating the game) and the no-lost-sign-ups system.
