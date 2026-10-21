@@ -61,7 +61,7 @@ The trail behind the stolen masters goes deeper with every chapter: out of the s
 - **Boss: THE CURATOR.** He runs the blogs and gossip sites and thinks he controls the narrative, but he never comes outside. He hides behind a wall of monitors firing hate comments as projectiles. Light is his weakness: knock out his screens and drag him into the light.
 
 ### Chapter 3 · THE BOT FARMS
-- **Levels:** Miles leaves Vegas and travels city to city, shutting down a bot farm in each one: rooms of phones and server racks pumping fake streams and fake hate. Suggested cities: **Los Angeles → Houston → Atlanta → New York**. Then the trail leads into **the Machine World**, the digital world all the farms feed.
+- **Levels:** Miles leaves Vegas and travels city to city, shutting down a bot farm in each one: rooms of phones and server racks pumping fake streams and fake hate. Cities: **Los Angeles → Houston → Atlanta → New York**. Then the trail leads into **the Machine World**, the digital world all the farms feed.
 - **Enemies:** bot accounts that multiply when you ignore them, phone-rack turrets, spam drones.
 - **Boss: THE BOT FATHER.** He runs every farm from inside the Machine World. A huge swarm boss: hit him and he splits into smaller bots that rebuild him unless you clear them fast.
 
@@ -134,10 +134,10 @@ Work through it in this order: each batch unlocks the next piece of building. Hi
 
 ### Content from Miles (no art needed)
 - [ ] Studio crew list: name, what they did on NORTH STAR, photo, Instagram or link
-- [ ] TV wall: YouTube links for music videos, performances, BTS, the listening party replay
-- [ ] Jukebox: song files or links, marked free preview vs. members-only
+- [x] TV wall: first 3 videos in (Shade 45 cypher, Unexpected: Up Next, 5th Element Hip Hop Show). Add music videos, BTS and the listening party replay anytime
+- [x] Jukebox: Blame the Weather Man, Badu, Like That are in. Send more anytime
 - [ ] Merch store link
-- [ ] Chapter 3 cities: confirm Los Angeles, Houston, Atlanta, New York or swap
+- [x] Chapter 3 cities: Los Angeles, Houston, Atlanta, New York (confirmed)
 - [ ] Tap Card unlock codes: yes or no
 
 ### Batch 2: Outfits + power-ups
