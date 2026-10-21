@@ -122,15 +122,57 @@ Each outfit is a real piece from the collection with its own perk, and the merch
 4. **Chapter 3 · THE BOT FARMS** + THE BOT FATHER + Rap Battle.
 5. **Chapter 4 · THE COSMIC WAR** + ALGOL + the cosmic outfit set.
 
-## 9. What's needed from Miles
+## 9. Production checklist: what needs to be made
 
-- **HQ art** from Higgsfield (prompts provided in chat): the main floor, the Studio, Miles walking in 4 directions.
-- **The Studio crew:** each producer and featured artist's name, what they did on NORTH STAR, a photo, and links.
-- **TV wall videos:** links to music videos, performances, BTS, the listening party replay.
-- **Jukebox songs:** which songs, and which are free previews vs. members-only.
-- **Merch store link** for the "get the real one" buttons.
-- **Instrumentals** for each chapter's levels and the Rap Battle.
-- **Chapter 3 cities:** confirm Los Angeles, Houston, Atlanta and New York, or swap in others.
-- **Decide** whether physical Tap Cards / Vol. 01 cards carry unlock codes.
+Work through it in this order: each batch unlocks the next piece of building. Higgsfield prompts are written batch by batch, matched to the game's layout, so ask for the next batch when you're ready for it. Everything else (levels, bosses, controls, saving, the sheet) gets built from these.
+
+### Batch 1: HQ (prompts already written)
+- [ ] HQ main floor (1 image)
+- [ ] The Studio (1 image)
+- [ ] Miles walking, top-down, 4 directions (1 sprite sheet)
+- [ ] Each Studio crew member as a standing sprite, made from their photo (1 per person)
+
+### Content from Miles (no art needed)
+- [ ] Studio crew list: name, what they did on NORTH STAR, photo, Instagram or link
+- [ ] TV wall: YouTube links for music videos, performances, BTS, the listening party replay
+- [ ] Jukebox: song files or links, marked free preview vs. members-only
+- [ ] Merch store link
+- [ ] Chapter 3 cities: confirm Los Angeles, Houston, Atlanta, New York or swap
+- [ ] Tap Card unlock codes: yes or no
+
+### Batch 2: Outfits + power-ups
+- [ ] Miles side-view sprite sheet in each outfit, same poses as the current sheet: DOPESQUE 702 tee, Battle Born 2015 tee, North Star bandana, North Star flag cape, Tap Card exclusive (5 sheets)
+- [ ] New power-up icons: mic, 808 Drop, gold chain (1 sheet)
+- [ ] Daily Spin machine (1 image)
+
+### Batch 3: Chapter 2 · THE UNDERGROUND
+- [ ] Backgrounds: Northtown, Boulder Highway at night, the Tunnels, the Curator's lair (4 images)
+- [ ] Enemies: blogger, basement nerd, hating tech bro, walking + defeated frames (1 sheet)
+- [ ] THE CURATOR boss: idle, attack, hurt, defeated (1 sheet)
+- [ ] Story scenes: opening and ending (about 4 images)
+- [ ] Music: instrumentals for the levels and the boss fight (2–3 beats)
+
+### Batch 4: Chapter 3 · THE BOT FARMS
+- [ ] Backgrounds: a bot farm in each city + the Machine World (5 images)
+- [ ] Enemies: bot accounts, phone-rack turrets, spam drones (1 sheet)
+- [ ] THE BOT FATHER boss: full form, split into smaller bots, defeated (1 sheet)
+- [ ] Story scenes (about 4 images)
+- [ ] Rap Battle: stage background + battle opponents (2 images)
+- [ ] Music: level beats, boss beat, Rap Battle beat (3–4 beats)
+
+### Batch 5: Chapter 4 · THE COSMIC WAR
+- [ ] Backgrounds: cosmic Afrofuturist space world, the constellation field, ALGOL's eclipse arena (3 images)
+- [ ] Miles in the cosmic Afrofuturist outfit (1 sprite sheet)
+- [ ] Enemies: ALGOL's cosmic forces (1 sheet)
+- [ ] ALGOL, THE DEMON STAR boss: bright, dimmed, attack, defeated (1 sheet)
+- [ ] Story scenes, including the finale (about 4 images)
+- [ ] Music: level beats and the final boss beat (2–3 beats)
+
+**Total: about 45 Higgsfield images and 8–10 instrumentals, plus the content list.**
+
+## 10. What's still needed from Miles
+
+- The content list and decisions in section 9.
+- The Higgsfield batches in section 9, one batch at a time.
 
 **Already shipped (Oct 20):** the share card (Instagram Story image after beating the game) and the no-lost-sign-ups system.
