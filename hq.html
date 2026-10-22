@@ -69,7 +69,7 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none}
 .spin-go{display:block;width:100%;font-size:11px;padding:12px}
 </style>
 
-<div class="tag">NORTH STAR HQ · PREVIEW</div>
+<div class="tag">NORTH STAR HQ</div>
 <div class="stage"><canvas id="hq" width="1280" height="768" aria-label="North Star HQ"></canvas></div>
 <div class="hint"><span class="keys"><b>ARROWS / WASD</b> WALK &nbsp;·&nbsp; <b>SPACE / ENTER</b> USE &nbsp;·&nbsp; <b>ESC</b> CLOSE<br></span>WALK UP TO ANYTHING THAT GLOWS</div>
 <div class="pad">
@@ -318,9 +318,8 @@ function useThing(o) {
   if (o.door) { enter(o.door.to, o.door); return; }
   if (o.id === 'door') { openPanel('<h2>THE STUDIO</h2><p class="sub">The people behind NORTH STAR. Coming soon.</p>'); return; }
   if (o.id === 'elevator') {
-    openPanel('<h2>ELEVATOR</h2><p class="sub">Pick a floor. In the full game this drops you straight into the level.</p><ul class="rows">' +
-      '<li><span>CHAPTER 1 · THE BREAKOUT<small>Replay any level</small></span></li>' +
-      LEVELS.map((l, i) => `<li><span>${i + 1} · ${l}</span><a class="btn" href="${GAME_URL}">PLAY</a></li>`).join('') +
+    openPanel('<h2>ELEVATOR</h2><p class="sub">Pick a floor. New chapters open here as they drop.</p><ul class="rows">' +
+      `<li><span>CHAPTER 1 · THE BREAKOUT<small>${LEVELS.join(' · ')}</small></span><a class="btn" href="${GAME_URL}">PLAY</a></li>` +
       CHAPTERS.map(([n, d]) => `<li class="lock"><span>${n}<small>${d}</small></span><span class="btn ghost">SOON</span></li>`).join('') +
       `<li><span>MAIN MENU<small>Back to the title screen</small></span><a class="btn ghost" href="${GAME_URL}">GO</a></li></ul>`);
   } else if (o.id === 'jukebox') {
@@ -351,8 +350,7 @@ function useThing(o) {
     const b = load('ns-best-v1') || {}, s = load('ns-society-v1');
     openPanel('<h2>TROPHY WALL</h2><p class="sub">' + (b.time ? 'Your best run.' : 'Beat Chapter 1 to fill this wall.') + '</p><div class="stats">' +
       `<div>MASTERS<b>${b.masters ?? 0}/7</b></div><div>BEST TIME<b>${b.time ? mmss(b.time) : '--'}</b></div><div>COINS<b>${b.coins ?? '--'}</b></div></div>` +
-      `<ul class="rows"><li><span>SOCIETY CARD<small>${s && s.member ? 'Member No. ' + String(s.member).padStart(4, '0') : s ? 'Member' : 'Not a member yet'}</small></span></li>` +
-      '<li><span>SHARE CARD<small>Your Instagram Story card lives here</small></span></li></ul>');
+      `<ul class="rows"><li><span>SOCIETY CARD<small>${s && s.member ? 'Member No. ' + String(s.member).padStart(4, '0') : s ? 'Member' : 'Not a member yet'}</small></span></li></ul>`);
   } else if (o.id === 'crew') {
     const c = CREW[o.crew];
     openPanel(`<h2>${c.name}</h2><p class="sub">${c.role}</p><ul class="rows"><li><span>ON NORTH STAR<small>${c.note}</small></span></li></ul>`);
