@@ -12,7 +12,9 @@
 
 Chapter 1 is what's live now: Studio → Downtown → Historic Westside → the Strip → the Penthouse climb → the contract choice → the Society.
 
-Beating Chapter 1 is the key. It's what turns a player into a member, and membership opens everything else. *The music is the invitation, the real product is belonging.*
+Beating Chapter 1 is the key. It's what turns a player into a member, and membership opens everything else.
+
+**Built (on the preview, Oct 22):** turning down the deal unlocks HQ. The Society screen shows NORTH STAR HQ UNLOCKED with an ENTER NORTH STAR HQ button (joining the Society for a prize is optional), and from then on the title screen has a NORTH STAR HQ button above START GAME. HQ stays locked for anyone who hasn't beaten Chapter 1. Players who beat it before HQ existed are already unlocked. The first visit opens with a welcome, and the elevator has MAIN MENU to get back. *The music is the invitation, the real product is belonging.*
 
 ---
 
