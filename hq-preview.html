@@ -105,9 +105,18 @@ const CHAPTERS = [['CHAPTER 2 · THE UNDERGROUND', 'Northtown · Boulder Highway
 /* ---------- the TV wall: each screen cycles frames from one of Miles's videos, like a barbershop TV ---------- */
 // YouTube can't be drawn into the game picture, so the wall shows frames from each video; walking up plays the real thing.
 const FRAMES = VIDEOS.map(v => ['1', '2', '3', 'hqdefault'].map(n => { const im = new Image(); im.src = 'https://i.ytimg.com/vi/' + v.id + '/' + n + '.jpg'; return im; }));
-const tv = document.createElement('video');   // fallback if the frames can't load
-tv.src = CARD_VIDEO; tv.muted = true; tv.loop = true; tv.playsInline = true; tv.setAttribute('playsinline', '');
+// The TV wall plays Miles's video files on every screen, with sound, the whole time you're in HQ.
+// Add a file here for each video (YouTube can't play inside the game picture; it opens when you walk up to the wall).
+const TV_REEL = [{ title: 'North Star Society card', src: CARD_VIDEO }];
+let reelIdx = 0, heard = false;
+const tv = document.createElement('video');
+tv.src = TV_REEL[0].src; tv.muted = true; tv.playsInline = true; tv.setAttribute('playsinline', ''); tv.volume = 0.5;
+tv.loop = TV_REEL.length === 1;
+tv.addEventListener('ended', () => { reelIdx = (reelIdx + 1) % TV_REEL.length; tv.src = TV_REEL[reelIdx].src; tv.play().catch(() => {}); });
 tv.play().catch(() => {});
+const songOn = () => jukeAudio && !jukeAudio.paused;
+function tvSound() { tv.muted = !heard || songOn() || !panelEl.hidden && cardEl.querySelector('iframe') !== null; }
+function firstGesture() { heard = true; tv.play().catch(() => {}); tvSound(); }   // browsers only allow sound after the first tap or key
 
 /* ---------- rooms: walls come from the tile map, furniture from solid boxes ---------- */
 // '#' wall, '.' floor. Stations are boxes you walk up to; "use" is the side you press A from.
@@ -123,8 +132,8 @@ const ROOMS = {
       '#............................#',
       '#............................#',
       '#............................#',
-      '#.............................',
-      '#.............................',
+      '#............................#',
+      '#............................#',
       '#............................#',
       '#............................#',
       '#............................#',
@@ -142,7 +151,7 @@ const ROOMS = {
       { id: 'couch', x: 20, y: 6, w: 7, h: 1, solid: true },
       { id: 'arcade', x: 2, y: 13, w: 7, h: 2, label: 'ARCADE' },
       { id: 'merch', x: 21, y: 13, w: 7, h: 2, label: 'MERCH RACK' },
-      { id: 'door', x: 29, y: 9, w: 1, h: 2, label: 'THE STUDIO', door: { to: 'studio', x: 1.5 * T, y: 7 * T, face: 'right' } },
+      { id: 'door', x: 29, y: 9, w: 1, h: 2, label: 'THE STUDIO · COMING SOON' },   // opens later: door: { to: 'studio', x: 1.5 * T, y: 7 * T, face: 'right' }
     ],
   },
   studio: {
@@ -200,6 +209,7 @@ function facing() {   // the station right in front of Miles
 const keys = {}; let actPressed = false;
 const KEYMAP = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'act', Enter: 'act' };
 addEventListener('keydown', e => {
+  firstGesture();
   if (!panelEl.hidden) { if (e.code === 'Escape') closePanel(); return; }
   const k = KEYMAP[e.code]; if (!k) return;
   e.preventDefault(); if (e.repeat && k === 'act') return;
@@ -209,11 +219,11 @@ addEventListener('keyup', e => { const k = KEYMAP[e.code]; if (k) keys[k] = fals
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
 document.querySelectorAll('.pad button').forEach(b => {
   const k = b.dataset.k;
-  b.addEventListener('pointerdown', e => { e.preventDefault(); b.classList.add('on'); if (k === 'act') actPressed = true; else keys[k] = true; tv.play().catch(() => {}); });
+  b.addEventListener('pointerdown', e => { e.preventDefault(); b.classList.add('on'); if (k === 'act') actPressed = true; else keys[k] = true; firstGesture(); });
   const up = e => { e.preventDefault(); b.classList.remove('on'); keys[k] = false; };
   b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('pointerleave', up);
 });
-cv.addEventListener('pointerdown', () => { tv.play().catch(() => {}); actPressed = true; });
+cv.addEventListener('pointerdown', () => { firstGesture(); actPressed = true; });
 
 /* ---------- station panels ---------- */
 const panelEl = document.getElementById('panel'), cardEl = document.getElementById('card');
@@ -225,13 +235,14 @@ function openPanel(html) {
   for (const k in keys) keys[k] = false;
   (cardEl.querySelector('.btn') || document.getElementById('px')).focus({ preventScroll: true });
 }
-function closePanel() { panelEl.hidden = true; cardEl.innerHTML = ''; }   // clearing it stops any video still playing
+function closePanel() { panelEl.hidden = true; cardEl.innerHTML = ''; tvSound(); }   // clearing it stops any video still playing
 panelEl.addEventListener('pointerdown', e => { if (e.target === panelEl) closePanel(); });
 const load = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
 const mmss = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 
 function useThing(o) {
   if (o.door) { enter(o.door.to, o.door); return; }
+  if (o.id === 'door') { openPanel('<h2>THE STUDIO</h2><p class="sub">The people behind NORTH STAR. Coming soon.</p>'); return; }
   if (o.id === 'elevator') {
     openPanel('<h2>ELEVATOR</h2><p class="sub">Pick a floor. In the full game this drops you straight into the level.</p><ul class="rows">' +
       '<li><span>CHAPTER 1 · THE BREAKOUT<small>Replay any level</small></span></li>' +
@@ -243,7 +254,7 @@ function useThing(o) {
     cardEl.querySelectorAll('[data-song]').forEach(b => b.onclick = () => {
       const i = +b.dataset.song;
       if (jukeIdx === i && jukeAudio && !jukeAudio.paused) { jukeAudio.pause(); }
-      else { if (jukeAudio) jukeAudio.pause(); if (jukeIdx !== i) { jukeAudio = new Audio(SONGS[i].src); jukeIdx = i; } jukeAudio.volume = 0.6; jukeAudio.play().catch(() => {}); }
+      else { if (jukeAudio) jukeAudio.pause(); if (jukeIdx !== i) { jukeAudio = new Audio(SONGS[i].src); jukeIdx = i; jukeAudio.addEventListener('ended', tvSound); jukeAudio.addEventListener('pause', tvSound); jukeAudio.addEventListener('play', tvSound); } jukeAudio.volume = 0.6; jukeAudio.play().catch(() => {}); }
       cardEl.querySelectorAll('[data-song]').forEach(x => x.textContent = (+x.dataset.song === jukeIdx && !jukeAudio.paused) ? 'PAUSE' : 'PLAY');
     });
   } else if (o.id === 'tv') {
@@ -251,6 +262,7 @@ function useThing(o) {
     openPanel(`<h2>TV WALL</h2><div class="yt"><iframe id="yt" src="${embed(VIDEOS[0].id)}" title="Miles Low video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>` +
       '<ul class="rows">' + VIDEOS.map((v, i) => `<li><span>${v.title}<small>${v.sub}</small></span><button class="btn" data-vid="${i}">WATCH</button></li>`).join('') + '</ul>');
     cardEl.querySelectorAll('[data-vid]').forEach(b => b.onclick = () => { document.getElementById('yt').src = embed(VIDEOS[+b.dataset.vid].id); });
+    tvSound();
   } else if (o.id === 'arcade') {
     openPanel('<h2>ARCADE</h2><p class="sub">Mini-games.</p><ul class="rows">' +
       [['RAP BATTLE', 'Land the hardest bar on the beat'], ['DAILY SPIN', 'One spin a day for coins and outfit pieces'], ['BEAT TAP', 'Tap on the beat to Miles\'s songs']]
@@ -331,8 +343,8 @@ function drawThing(o) {
       const x = b.x + 2 + i * 47, y = b.y + 6, w = 42, h = 22;
       rect('#000', x - 2, y - 2, w + 4, h + 4);
       const im = FRAMES[i][Math.floor(t / 2.6 + i * 1.3) % 4], k = (t / 2.6 + i * 1.3) % 1;   // a new frame every few seconds, slowly drifting
-      if (im.complete && im.naturalWidth > 0) { const sw = im.naturalWidth * 0.86, sh = sw * h / w; ctx.drawImage(im, (im.naturalWidth - sw) * k, (im.naturalHeight - sh) / 2, sw, sh, x, y, w, h); }
-      else if (tv.readyState >= 2) { const vw = tv.videoWidth, vh = tv.videoHeight, sh = vw * h / w; ctx.drawImage(tv, 0, (vh - sh) / 2 + i * 40, vw, sh, x, y, w, h); }
+      if (tv.readyState >= 2) { const vw = tv.videoWidth, vh = tv.videoHeight, sh = Math.min(vh, vw * h / w), sw = sh * w / h; ctx.drawImage(tv, (vw - sw) / 2, (vh - sh) / 2, sw, sh, x, y, w, h); }
+      else if (im.complete && im.naturalWidth > 0) { const sw = im.naturalWidth * 0.86, sh = sw * h / w; ctx.drawImage(im, (im.naturalWidth - sw) * k, (im.naturalHeight - sh) / 2, sw, sh, x, y, w, h); }
       else rect('#1d3fbf', x, y, w, h);
       rect('rgba(0,0,0,.18)', x, y + ((t * 20 + i * 7) % h), w, 1);   // scanline roll
       rect('rgba(255,255,255,.06)', x, y, w, 4);
@@ -352,7 +364,7 @@ function drawThing(o) {
     txt('MERCH', b.x + b.w / 2, b.y - 7, '#ffcc33', 5);
   } else if (o.id === 'door') {
     rect('#ffcc33', b.x + (room === 'hq' ? 10 : 0), b.y, 6, b.h);
-    txt(o.label, room === 'hq' ? b.x - 4 : b.x + 22, b.y - 8, '#ffcc33', 5, room === 'hq' ? 'right' : 'left');
+    txt(room === 'hq' ? 'STUDIO · SOON' : o.label, room === 'hq' ? b.x - 4 : b.x + 22, b.y - 8, '#ffcc33', 5, room === 'hq' ? 'right' : 'left');
   } else if (o.id === 'console') {
     rect('#22201f', b.x, b.y, b.w, b.h); for (let i = 0; i < 24; i++) rect(['#ffcc33', '#3ee6ff', '#e8413c'][i % 3], b.x + 4 + i * 5, b.y + 6 + (Math.sin(t * 3 + i) > 0 ? 0 : 3), 2, 4);
     rect('#0c0c0c', b.x + 20, b.y + 18, b.w - 40, 8);
@@ -398,7 +410,7 @@ function render() {
 
 /* ---------- loop ---------- */
 enter('hq');
-window.__hq = { P, get room() { return room; }, facing: () => facing() && facing().label };
+window.__hq = { P, get room() { return room; }, facing: () => facing() && facing().label, tv: () => (tv.paused ? 'paused' : 'playing') + (tv.muted ? ', muted' : ', sound on') };
 let last = performance.now();
 function frame(now) {
   const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now; t += dt;
