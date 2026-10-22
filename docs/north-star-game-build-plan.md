@@ -1,6 +1,6 @@
 # NORTH STAR: Brightest in the Skyline — Full Game Plan
 
-*Build once: the whole game mapped out, so every piece fits the next. Last updated Oct 20, 2026.*
+*Build once: the whole game mapped out, so every piece fits the next. Last updated Oct 22, 2026.*
 
 **Release rule:** the expansion (HQ, Chapters 2–4, outfits, mini-games) ships to the live site all at once, when it's finished. Until then the live game stays as it is, and work in progress lives on a private preview and a separate GitHub branch that doesn't touch the live game.
 
@@ -86,6 +86,8 @@ Each outfit is a real piece from the collection with its own perk, and the merch
 | North Star flag cape (the cover look) | Glides / falls slowly |
 | Tap Card exclusive | Unlocked only with a physical card code |
 
+**Built (on the preview, Oct 22):** every coin picked up in the game goes into the player's wallet. At the merch rack they unlock outfits with coins (702 tee 50, Battle Born 75, bandana 100, flag cape 150; a full Chapter 1 run pays about 120), pick what to wear, and tap GET IT to buy the real piece. Each outfit has its own run, jump, climb, victory and standing poses, drawn from the Higgsfield sheets so they match the game exactly. Prices are easy to change.
+
 ## 5. New power-ups (Chapter 2)
 
 - **Mic:** throw sound waves, the first real attack in the game
@@ -99,7 +101,7 @@ The arcade is the **Do Better Arcade**: every Miles Low game in one place. It al
 
 
 1. **Rap Battle:** rooted in Miles's battle-rap history. Pick the hardest bar and land it on the beat against label execs, over Miles's own instrumentals.
-2. **Daily Spin:** one Vegas-style spin per day for coins and outfit pieces. A reason to come back every day, tracked on the sheet as return visits.
+2. **Daily Spin (built on the preview):** one spin a day, reset at midnight Las Vegas time. The wheel pays 5–50 coins, and 1 spin in 20 lands on a free outfit (100 coins once they own them all). It keeps a day streak.
 3. **Beat Tap:** tap on the beat to Miles's songs for a high score. Comes later.
 
 ## 7. Data (what the sheet tracks)
@@ -139,15 +141,16 @@ Work through it in this order: each batch unlocks the next piece of building. Hi
 - [ ] Studio crew list: on hold until the Studio opens
 - [x] TV wall: the Punch Line Academy cypher clip plays on the TVs; YouTube videos in (Shade 45 cypher, Unexpected: Up Next, 5th Element Hip Hop Show). Add music videos, BTS and the listening party replay anytime
 - [x] Jukebox: Blame the Weather Man, Badu, Like That are in. Send more anytime
-- [ ] Merch store link (coming from Miles)
+- [ ] Merch store link (coming from Miles; one link for the store, or one per piece)
 - [x] Chapter 3 cities: Los Angeles, Houston, Atlanta, New York (confirmed)
 - [ ] Tap Card unlock codes: yes or no
 
 ### Batch 2: Outfits + power-ups
-- [x] Miles in each outfit, run sheet + climb/victory/idle sheet: DOPESQUE 702 tee, Battle Born 2015 tee, North Star bandana, North Star flag cape (8 sheets, generated Oct 22)
+- [x] Miles in each outfit, run sheet + climb/victory/idle sheet: DOPESQUE 702 tee, Battle Born 2015 tee, North Star bandana, North Star flag cape (8 sheets, generated Oct 22, built into the game)
 - [ ] Tap Card exclusive outfit: waiting on the Tap Card decision
-- [x] New power-up icons: mic, 808 Drop, gold chain (1 sheet)
-- [x] Daily Spin machine (1 image)
+- [x] New power-up icons: mic, 808 Drop, gold chain (1 sheet; they go into the Chapter 2 levels)
+- [x] Daily Spin machine (1 image, working in HQ)
+- [ ] Optional: Miles in each outfit walking top-down for HQ (4 sheets). In HQ he wears the NORTHTOWN tee for now
 
 ### Batch 3: Chapter 2 · THE UNDERGROUND
 - [ ] Backgrounds: Northtown, Boulder Highway at night, the Tunnels, the Curator's lair (4 images)
