@@ -43,9 +43,25 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 .stats div{border:2px solid #3a3260;border-radius:8px;padding:10px 4px;text-align:center;font-size:7px;letter-spacing:.1em;color:#a99bc2;line-height:2}
 .stats b{display:block;font-weight:400;font-size:13px;color:var(--accent)}
+/* merch rack closet + Daily Spin */
+.wallet{display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.06em;color:var(--accent);margin:-6px 0 14px}
+.coin{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe58a,#ffcc33 45%,#b8860b);box-shadow:0 0 0 1px #000;flex:none}
+.rows li.fit{display:grid;grid-template-columns:52px 1fr auto;gap:10px}
+.thumb{width:52px;height:68px;border-radius:6px;background:#1b1730;display:flex;justify-content:center;overflow:hidden}
+.thumb i{display:block;height:68px;flex:none;background-repeat:no-repeat}
+.thumb i.px{image-rendering:pixelated}
+.rows li.on{border-color:var(--accent)}
+.acts{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.acts .btn{text-align:center}
+.btn[disabled]{opacity:.45;cursor:default}
+.spin{position:relative;width:min(260px,72%);margin:0 auto 12px}
+.spin canvas{display:block;width:100%;height:auto;image-rendering:auto;cursor:pointer}
+.spin-msg{text-align:center;font-size:9px;line-height:1.9;letter-spacing:.06em;min-height:36px;margin:0 0 10px}
+.spin-msg b{color:var(--accent);font-weight:400}
+.spin-go{display:block;width:100%;font-size:11px;padding:12px}
 </style>
 
-<div class="tag">HQ LAYOUT PREVIEW · PLACEHOLDER ART</div>
+<div class="tag">NORTH STAR HQ · PREVIEW</div>
 <div class="stage"><canvas id="hq" width="1280" height="768" aria-label="North Star HQ"></canvas></div>
 <div class="hint"><span class="keys"><b>ARROWS / WASD</b> WALK &nbsp;·&nbsp; <b>SPACE / ENTER</b> USE &nbsp;·&nbsp; <b>ESC</b> CLOSE<br></span>WALK UP TO ANYTHING THAT GLOWS</div>
 <div class="pad">
@@ -96,12 +112,50 @@ const CREW = [
   { name: 'FEATURE 2', role: 'Featured artist', note: 'Name, song, photo and links go here.', col: '#c77dff' },
   { name: 'ENGINEER', role: 'Mix & master', note: 'Name, credits, photo and links go here.', col: '#ffcc33' },
 ];
-const MERCH_URL = 'https://mileslowmusic.com';
+const MERCH_URL = 'https://mileslowmusic.com';   // swap for the real store link (one link per piece works too: add url to each outfit)
+
+/* ---------- outfits + coins (shared with the game: it reads ns-outfit-v1 and adds coins to ns-wallet-v1) ---------- */
+const FITS = [
+  { id: 'default', name: 'NORTHTOWN DOVE TEE', perk: 'Balanced', price: 0 },
+  { id: '702', name: 'DOPESQUE 702 TEE', perk: 'Runs faster', price: 50 },
+  { id: 'battle', name: 'BATTLE BORN 2015 TEE', perk: 'Takes one extra hit', price: 75 },
+  { id: 'bandana', name: 'NORTH STAR BANDANA', perk: 'Pulls in nearby coins', price: 100 },
+  { id: 'cape', name: 'NORTH STAR FLAG CAPE', perk: 'Hold jump to glide', price: 150 },
+];
+const FIT_CELLS = { '702': [352, 214, 11], battle: [354, 214, 11], bandana: [356, 214, 11], cape: [352, 214, 11] };   // art/outfits/meta.json
+const store = {
+  get: (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set: (k, v) => { try { localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v)); } catch (e) {} },
+};
+const wallet = () => Math.max(0, parseInt(store.get('ns-wallet-v1', 0), 10) || 0);
+const addCoins = n => store.set('ns-wallet-v1', String(wallet() + n));
+const owned = () => { const o = store.get('ns-closet-v1', []); return Array.isArray(o) ? o : []; };
+const wearing = () => { let o = 'default'; try { o = localStorage.getItem('ns-outfit-v1') || 'default'; } catch (e) {} return FITS.some(f => f.id === o) ? o : 'default'; };
+const has = id => id === 'default' || owned().includes(id);
+function unlock(id) { if (!has(id)) store.set('ns-closet-v1', owned().concat(id)); }
+function thumb(f) {   // the outfit's standing frame, cut from its strip
+  const [img, cw, ch, n, frame, px] = f.id === 'default' ? ['images/miles.png', 52, 76, 7, 0, true] : ['images/outfit-' + f.id + '.png', ...FIT_CELLS[f.id], 10, false];
+  const k = 68 / ch, w = cw * k;
+  return `<div class="thumb"><i class="${px ? 'px' : ''}" style="width:${w.toFixed(1)}px;background-image:url(${img});background-size:${(cw * n * k).toFixed(1)}px 68px;background-position:${(-frame * w).toFixed(1)}px 0"></i></div>`;
+}
+
+/* ---------- Daily Spin: one spin a day (Las Vegas time) for coins, sometimes a free outfit ---------- */
+const SPIN_SEGS = [   // clockwise from the pointer; w = odds in percent
+  { label: '10', coins: 10, w: 18, col: '#1d3fbf' }, { label: '25', coins: 25, w: 12, col: '#e8413c' },
+  { label: '5', coins: 5, w: 15, col: '#1b1730' }, { label: '50', coins: 50, w: 8, col: '#b8860b' },
+  { label: '10', coins: 10, w: 18, col: '#1d3fbf' }, { label: '15', coins: 15, w: 12, col: '#e8413c' },
+  { label: 'OUTFIT', fit: true, w: 5, col: '#ffcc33' }, { label: '25', coins: 25, w: 12, col: '#1b1730' },
+];
+const SPIN = { cx: 276, cy: 461.6, r: 184.5, w: 592, h: 900 };   // the navy circle in images/spin-machine.png
+const vegasDay = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(d);
+const spunToday = () => (store.get('ns-spin-v1', {}) || {}).last === vegasDay();
+const spinImg = new Image(), ptrImg = new Image(); spinImg.src = 'images/spin-machine.png'; ptrImg.src = 'images/spin-pointer.png';
 // The Do Better Arcade: Miles's other games, playable from the HQ arcade cabinets
 const DBA_GAMES = [
   ['NEED A RIDE?', 'Rideshare driving across South LA', 'https://need-a-ride.vercel.app'],
   ['HOUSE RULES', 'Fly above a futuristic Las Vegas', 'https://house-rules-five.vercel.app'],
 ];
+const GAME_URL = /hq-preview/.test(location.pathname) ? 'index.html' : 'game.html';   // where the elevator takes you
 const LEVELS = ['THE STUDIO', 'DOWNTOWN', 'HISTORIC WESTSIDE', 'THE STRIP', 'THE PENTHOUSE'];
 const CHAPTERS = [['CHAPTER 2 · THE UNDERGROUND', 'Northtown · Boulder Highway · the Tunnels · Boss: THE CURATOR'],
   ['CHAPTER 3 · THE BOT FARMS', 'Los Angeles · Houston · Atlanta · New York · the Machine World · Boss: THE BOT FATHER'],
@@ -252,7 +306,7 @@ function useThing(o) {
   if (o.id === 'elevator') {
     openPanel('<h2>ELEVATOR</h2><p class="sub">Pick a floor. In the full game this drops you straight into the level.</p><ul class="rows">' +
       '<li><span>CHAPTER 1 · THE BREAKOUT<small>Replay any level</small></span></li>' +
-      LEVELS.map((l, i) => `<li><span>${i + 1} · ${l}</span><a class="btn" href="index.html">PLAY</a></li>`).join('') +
+      LEVELS.map((l, i) => `<li><span>${i + 1} · ${l}</span><a class="btn" href="${GAME_URL}">PLAY</a></li>`).join('') +
       CHAPTERS.map(([n, d]) => `<li class="lock"><span>${n}<small>${d}</small></span><span class="btn ghost">SOON</span></li>`).join('') + '</ul>');
   } else if (o.id === 'jukebox') {
     const row = (s, i) => `<li><span>${s.title}${s.credit ? '<small>' + s.credit + '</small>' : ''}</span><button class="btn" data-song="${i}">${jukeIdx === i && jukeAudio && !jukeAudio.paused ? 'PAUSE' : 'PLAY'}</button></li>`;
@@ -272,12 +326,12 @@ function useThing(o) {
   } else if (o.id === 'arcade') {
     openPanel('<h2>DO BETTER ARCADE</h2><p class="sub">Every Miles Low game in one place.</p><ul class="rows">' +
       DBA_GAMES.map(([n, d, url]) => `<li><span>${n}<small>${d}</small></span><a class="btn" href="${url}" target="_blank" rel="noopener">PLAY ↗</a></li>`).join('') +
-      [['RAP BATTLE', 'Land the hardest bar on the beat'], ['DAILY SPIN', 'One spin a day for coins and outfit pieces'], ['BEAT TAP', 'Tap on the beat to Miles\'s songs']]
+      `<li><span>DAILY SPIN<small>${spunToday() ? 'Spun today. Back tomorrow' : 'One free spin a day: coins or an outfit'}</small></span><button class="btn" id="go-spin">${spunToday() ? 'VIEW' : 'SPIN'}</button></li>` +
+      [['RAP BATTLE', 'Land the hardest bar on the beat'], ['BEAT TAP', 'Tap on the beat to Miles\'s songs']]
         .map(([n, d]) => `<li class="lock"><span>${n}<small>${d}</small></span><span class="btn ghost">SOON</span></li>`).join('') + '</ul>');
+    document.getElementById('go-spin').onclick = openSpin;
   } else if (o.id === 'merch') {
-    openPanel('<h2>MERCH RACK</h2><p class="sub">Every outfit is a real North Star piece. Wear it in the game, get the real one in the store.</p><img class="wide" src="images/society-shirts.webp" alt="North Star shirts">' +
-      '<ul class="rows">' + [['NORTHTOWN DOVE TEE', 'Balanced'], ['DOPESQUE 702 TEE', 'Runs faster'], ['BATTLE BORN 2015 TEE', 'One extra hit'], ['NORTH STAR BANDANA', 'Pulls in coins'], ['NORTH STAR FLAG CAPE', 'Glides']]
-        .map(([n, p]) => `<li><span>${n}<small>${p}</small></span><a class="btn" href="${MERCH_URL}" target="_blank" rel="noopener">GET IT ↗</a></li>`).join('') + '</ul>');
+    openCloset();
   } else if (o.id === 'trophy') {
     const b = load('ns-best-v1') || {}, s = load('ns-society-v1');
     openPanel('<h2>TROPHY WALL</h2><p class="sub">' + (b.time ? 'Your best run.' : 'Beat Chapter 1 to fill this wall.') + '</p><div class="stats">' +
@@ -292,6 +346,94 @@ function useThing(o) {
   } else if (o.id === 'booth') {
     openPanel('<h2>VOCAL BOOTH</h2><p class="sub">Freestyles, demos and alternate takes from the mixtape can live here.</p>');
   }
+}
+
+function openCloset(note) {
+  const on = wearing(), coins = wallet();
+  openPanel('<h2>MERCH RACK</h2><p class="sub">Every outfit is a real North Star piece with its own power. Unlock it with coins from the game, wear it on your next run, and get the real one in the store.</p>' +
+    `<div class="wallet"><span class="coin"></span>${coins} COINS${note ? ' · ' + note : ''}</div><ul class="rows">` +
+    FITS.map(f => {
+      const mine = has(f.id), act = f.id === on ? '<button class="btn ghost" disabled>WEARING</button>'
+        : mine ? `<button class="btn" data-wear="${f.id}">WEAR</button>`
+        : `<button class="btn" data-buy="${f.id}"${coins < f.price ? ' disabled' : ''}>UNLOCK ${f.price}</button>`;
+      return `<li class="fit${f.id === on ? ' on' : ''}">${thumb(f)}<span>${f.name}<small>${f.perk}</small></span><span class="acts">${act}<a class="btn ghost" href="${f.url || MERCH_URL}" target="_blank" rel="noopener">GET IT ↗</a></span></li>`;
+    }).join('') + '</ul>');
+  cardEl.querySelectorAll('[data-wear]').forEach(b => b.onclick = () => { store.set('ns-outfit-v1', b.dataset.wear); openCloset('NOW WEARING'); });
+  cardEl.querySelectorAll('[data-buy]').forEach(b => b.onclick = () => {
+    const f = FITS.find(x => x.id === b.dataset.buy);
+    if (wallet() < f.price) return;
+    store.set('ns-wallet-v1', String(wallet() - f.price)); unlock(f.id); store.set('ns-outfit-v1', f.id); openCloset('UNLOCKED');
+  });
+}
+
+let wheelRot = 0, spinning = false;
+function drawWheel(c) {
+  const g = c.getContext('2d'), { cx, cy, r } = SPIN, n = SPIN_SEGS.length, a = Math.PI * 2 / n;
+  g.clearRect(0, 0, c.width, c.height);
+  if (spinImg.complete && spinImg.naturalWidth) g.drawImage(spinImg, 0, 0);
+  g.save(); g.translate(cx, cy); g.rotate(wheelRot);
+  SPIN_SEGS.forEach((s, i) => {   // segment i is centred on the pointer (straight up) when wheelRot = -i * a
+    const a0 = -Math.PI / 2 + i * a - a / 2;
+    g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, r - 3, a0, a0 + a); g.closePath(); g.fillStyle = s.col; g.fill();
+    g.strokeStyle = '#ffcc33'; g.lineWidth = 4; g.stroke();
+    g.save(); g.rotate(i * a); g.textAlign = 'center'; g.textBaseline = 'middle';
+    if (s.fit) {   // the free-outfit slot: a star
+      const sy = -r * 0.68; g.fillStyle = '#100c22'; g.beginPath();
+      for (let k = 0; k < 10; k++) { const q = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? 9 : 22; g.lineTo(Math.cos(q) * rr, sy + Math.sin(q) * rr); } g.fill();
+      g.font = '12px "Press Start 2P", monospace'; g.fillText('OUTFIT', 0, sy + 36);
+    } else {
+      g.font = '30px "Press Start 2P", monospace'; g.fillStyle = '#000'; g.fillText(s.label, 3, -r * 0.66 + 3);
+      g.fillStyle = s.col === '#b8860b' ? '#fff2c4' : '#f3ead8'; g.fillText(s.label, 0, -r * 0.66);
+    }
+    g.restore();
+  });
+  g.beginPath(); g.arc(0, 0, 30, 0, Math.PI * 2); g.fillStyle = '#100c22'; g.fill(); g.lineWidth = 6; g.strokeStyle = '#ffcc33'; g.stroke();
+  g.fillStyle = '#ffcc33'; g.beginPath(); for (let i = 0; i < 10; i++) { const q = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? 7 : 17; g.lineTo(Math.cos(q) * rr, Math.sin(q) * rr); } g.fill();
+  g.restore();
+  if (ptrImg.complete && ptrImg.naturalWidth) g.drawImage(ptrImg, 0, 0);
+}
+function untilTomorrow() {   // time left until midnight in Las Vegas
+  const now = new Date(), day = vegasDay(now); let lo = 0, hi = 26 * 3600;
+  while (hi - lo > 30) { const m = (lo + hi) / 2; if (vegasDay(new Date(now.getTime() + m * 1000)) === day) lo = m; else hi = m; }
+  const s = Math.round(hi / 60); return Math.floor(s / 60) + 'H ' + String(s % 60).padStart(2, '0') + 'M';
+}
+function openSpin() {
+  const rec = store.get('ns-spin-v1', {}) || {};
+  openPanel('<h2>DAILY SPIN</h2><div class="spin"><canvas id="wheel" width="' + SPIN.w + '" height="' + SPIN.h + '" aria-label="Daily Spin wheel"></canvas></div>' +
+    `<p class="spin-msg" id="spin-msg">${spunToday() ? 'You spun today' + (rec.prize ? ': <b>' + rec.prize + '</b>' : '') + '.<br>Next spin in ' + untilTomorrow() + '.' : 'One free spin a day.<br>Coins unlock outfits on the merch rack.'}</p>` +
+    `<div class="wallet" style="justify-content:center"><span class="coin"></span><span id="spin-coins">${wallet()}</span>&nbsp;COINS${rec.streak > 1 ? ' · ' + rec.streak + ' DAY STREAK' : ''}</div>` +
+    `<button class="btn spin-go" id="spin-go"${spunToday() ? ' disabled' : ''}>${spunToday() ? 'COME BACK TOMORROW' : 'PULL THE LEVER'}</button>`);
+  const c = document.getElementById('wheel'); drawWheel(c);
+  const go = () => {
+    if (spinning || spunToday()) return;
+    spinning = true; document.getElementById('spin-go').disabled = true;
+    const tot = SPIN_SEGS.reduce((x, s) => x + s.w, 0); let roll = Math.random() * tot, pick = 0;
+    for (let i = 0; i < SPIN_SEGS.length; i++) { if (roll < SPIN_SEGS[i].w) { pick = i; break; } roll -= SPIN_SEGS[i].w; }
+    const a = Math.PI * 2 / SPIN_SEGS.length, jitter = (Math.random() - 0.5) * a * 0.6;
+    const from = wheelRot, base = -pick * a + jitter, to = base + Math.PI * 2 * (5 + Math.ceil((from - base) / (Math.PI * 2)));   // 5+ turns clockwise
+    const t0 = performance.now(), dur = 4200;
+    // record the day before the wheel stops, so closing the panel mid-spin can't buy a second spin
+    const last = rec.last, yday = vegasDay(new Date(Date.now() - 864e5));
+    const seg = SPIN_SEGS[pick], locked = FITS.filter(f => !has(f.id));
+    const prize = seg.fit ? (locked.length ? locked[0].name : '100 COINS') : seg.coins + ' COINS';
+    if (seg.fit && locked.length) unlock(locked[0].id); else addCoins(seg.fit ? 100 : seg.coins);
+    store.set('ns-spin-v1', { last: vegasDay(), streak: last === yday ? (rec.streak || 0) + 1 : 1, prize, total: (rec.total || 0) + 1 });
+    const step = now => {
+      const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 4);
+      wheelRot = from + (to - from) * e;
+      if (!document.body.contains(c)) { spinning = false; wheelRot = to % (Math.PI * 2); return; }
+      drawWheel(c);
+      if (k < 1) return requestAnimationFrame(step);
+      spinning = false; wheelRot = to % (Math.PI * 2);
+      document.getElementById('spin-msg').innerHTML = (seg.fit && locked.length ? 'You won the <b>' + prize + '</b>!<br>It\'s on the merch rack now.' : 'You won <b>' + prize + '</b>!<br>Next spin in ' + untilTomorrow() + '.');
+      document.getElementById('spin-coins').textContent = wallet();
+      document.getElementById('spin-go').textContent = 'COME BACK TOMORROW';
+    };
+    requestAnimationFrame(step);
+  };
+  document.getElementById('spin-go').onclick = go; c.onclick = go;
+  if (!spinImg.complete) spinImg.onload = () => drawWheel(c);
+  if (!ptrImg.complete) ptrImg.onload = () => drawWheel(c);
 }
 
 /* ---------- update ---------- */
@@ -452,11 +594,15 @@ function render() {
   const f = panelEl.hidden && facing();
   if (f) { rect('rgba(5,4,15,.85)', 0, H - 18, W, 18); rect('#ffcc33', 0, H - 18, W, 1); txt((TOUCH ? 'TAP A' : 'SPACE') + ' · ' + f.label, W / 2, H - 12, '#ffcc33', 6); }
   txt(room === 'hq' ? 'NORTH STAR HQ' : 'THE STUDIO', 6, 5, '#a99bc2', 5, 'left');
+  const coins = String(wallet());
+  ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(W - 13 - coins.length * 5, 7.5, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ffcc33'; ctx.beginPath(); ctx.arc(W - 13.5 - coins.length * 5, 7, 3, 0, Math.PI * 2); ctx.fill();
+  txt(coins, W - 6, 5, '#ffcc33', 5, 'right');
 }
 
 /* ---------- loop ---------- */
 enter('hq');
-window.__hq = { P, get room() { return room; }, facing: () => facing() && facing().label, tv: () => (tv.paused ? 'paused' : 'playing') + (tv.muted ? ', muted' : ', sound on') };
+window.__hq = { P, openCloset, openSpin, get wheelRot() { return wheelRot; }, SPIN_SEGS, get room() { return room; }, facing: () => facing() && facing().label, tv: () => (tv.paused ? 'paused' : 'playing') + (tv.muted ? ', muted' : ', sound on') };
 let last = performance.now();
 function frame(now) {
   const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now; t += dt;

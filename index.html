@@ -399,6 +399,25 @@ const IMG = {}; let loaded = 0; const toLoad = Object.keys(IMG_SRC).length;
 for (const k in IMG_SRC) { const im = new Image(); im.onload = im.onerror = () => loaded++; im.src = IMG_SRC[k]; IMG[k] = im; }
 const ready = im => im.complete && im.naturalWidth > 0;
 
+/* ---------------- outfits: real North Star merch, picked at the HQ merch rack ---------------- */
+// Each strip: 0-5 run, 6 fall, 7-8 climb, 9 victory, 10 idle. Perks: 702 runs faster, Battle Born takes an extra hit,
+// the bandana pulls in coins, the flag cape glides (hold jump while falling).
+const FIT_CELLS = {"702": [352, 214, 11], "battle": [354, 214, 11], "bandana": [356, 214, 11], "cape": [352, 214, 11]};
+const OUTFIT_KEY = 'ns-outfit-v1', WALLET_KEY = 'ns-wallet-v1';
+let outfit = 'default', fitImg = null;
+function readOutfit() {
+  let o = 'default'; try { o = localStorage.getItem(OUTFIT_KEY) || 'default'; } catch (e) {}
+  if (!FIT_CELLS[o]) o = 'default';
+  if (o !== outfit) { outfit = o; fitImg = null; if (o !== 'default') { fitImg = new Image(); fitImg.src = 'images/outfit-' + o + '.png'; } }
+}
+readOutfit();
+let walletAdd = 0;   // coins picked up this run, banked for the HQ (outfits, Daily Spin)
+function bankCoins() {
+  if (!walletAdd) return;
+  try { localStorage.setItem(WALLET_KEY, String((parseInt(localStorage.getItem(WALLET_KEY), 10) || 0) + walletAdd)); walletAdd = 0; } catch (e) {}
+}
+addEventListener('pagehide', bankCoins);
+
 /* ---------------- music: Miles's beats, kept low under the game ---------------- */
 const MUSIC_VOL = 0.28;
 // Title screen + instructions: Ten Toes. Opening story: Weatherman. Game: Boomerang, 500 Degrees, Ten Toes, Weatherman, then shuffle.
@@ -480,6 +499,11 @@ function drawRun(f, cx, feetY, face) {
   const w = RUN_CELL[0] / SCALE, h = RUN_CELL[1] / SCALE, x = snap(cx - w / 2), y = snap(feetY - h);
   if (face < 0) { ctx.save(); ctx.translate(x + w, y); ctx.scale(-1, 1); ctx.drawImage(IMG.miles_run, f * RUN_CELL[0], 0, RUN_CELL[0], RUN_CELL[1], 0, 0, w, h); ctx.restore(); }
   else ctx.drawImage(IMG.miles_run, f * RUN_CELL[0], 0, RUN_CELL[0], RUN_CELL[1], x, y, w, h);
+}
+function drawFit(f, cx, feetY, face) {
+  const [cw, ch] = FIT_CELLS[outfit], w = cw / SCALE, h = ch / SCALE, x = snap(cx - w / 2), y = snap(feetY - h);
+  if (face < 0) { ctx.save(); ctx.translate(x + w, y); ctx.scale(-1, 1); ctx.drawImage(fitImg, f * cw, 0, cw, ch, 0, 0, w, h); ctx.restore(); }
+  else ctx.drawImage(fitImg, f * cw, 0, cw, ch, x, y, w, h);
 }
 function drawMiles(f, cx, feetY, face) {
   if (!ready(IMG.miles)) return;
@@ -708,6 +732,7 @@ const keys = { left: false, right: false, jump: false };
 let jumpPressed = false, startPressed = false;
 
 function loadLevel(i) {
+  readOutfit(); bankCoins();
   lv = LEVELS[i](); mastersAtStart = masters;
   if (lv.kind === 'side') {
     lv.coins.forEach(c => c.got = false); lv.stars.forEach(s => s.got = false);
@@ -720,7 +745,7 @@ function loadLevel(i) {
   trackLevel(i);
 }
 function spawn() {
-  p = { x: 0, y: 0, w: 14, h: 36, vx: 0, vy: 0, onGround: true, face: -1, coyote: 0, buffer: 0, anim: 0, inv: 0, shades: 0, climb: null, airJumps: 1, airT: 0 };
+  p = { x: 0, y: 0, w: 14, h: 36, vx: 0, vy: 0, onGround: true, face: -1, coyote: 0, buffer: 0, anim: 0, inv: 0, shades: 0, climb: null, airJumps: 1, airT: 0, armor: outfit === 'battle' ? 1 : 0, gliding: false };
   particles = []; floats = [];
   if (lv.kind === 'side') {
     p.x = lv.start.x * T + 2; p.y = 10 * T - p.h; p.face = 1;
@@ -738,7 +763,7 @@ function startGame() {
   lives = 3; continues = 2; coinBank = 0; totals = { coins: 0, stars: 0 }; masters = 0; levelIndex = 0;
   playSlides(SLIDES, () => { loadLevel(0); setState('intro'); });
 }
-function setState(s) { state = s; stateT = 0; jumpPressed = false; startPressed = false; syncCover(); trackState(s); }
+function setState(s) { state = s; stateT = 0; jumpPressed = false; startPressed = false; syncCover(); trackState(s); bankCoins(); }
 const themeAt = tx => (lv.theme2 && tx >= lv.split ? lv.theme2 : lv.theme);
 
 /* ---------------- tiles & collision (side levels) ---------------- */
@@ -806,6 +831,15 @@ function die() {
   if (state !== 'play') return;
   sfx.hurt(); p.vy = -320; p.vx = 0; p.climb = null; setState('dead');
 }
+function hit() {   // an enemy or a thrown contract got him. Battle Born soaks up one hit per life.
+  if (p.armor > 0) {
+    p.armor--; p.inv = 1.4; p.vy = -260; p.vx = -p.face * 90; sfx.hurt();
+    burst(p.x + p.w / 2, p.y + 10, '#e8413c', 12);
+    floats.push({ s: 'BATTLE BORN!', x: p.x + p.w / 2, y: p.y - 12, life: 1.3, col: '#ff6b6b' });
+    return false;
+  }
+  die(); return true;
+}
 function steer(dt) {
   const dir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
   if (dir) {
@@ -814,7 +848,8 @@ function steer(dt) {
   } else {
     const f = (p.onGround ? STOP : 260) * dt; p.vx = Math.abs(p.vx) <= f ? 0 : p.vx - Math.sign(p.vx) * f;
   }
-  p.vx = clamp(p.vx, -MAXV, MAXV);
+  const top = outfit === '702' ? MAXV * 1.15 : MAXV;   // the 702 tee runs faster
+  p.vx = clamp(p.vx, -top, top);
   return dir;
 }
 function doJump(jv) { p.vy = -jv; p.buffer = 0; p.coyote = 0; p.onGround = false; sfx.jump(); }
@@ -832,6 +867,8 @@ function jumpLogic(dt, jv) {
   } else if (p.buffer > 0 && p.coyote > 0) doJump(jv);
   if (!keys.jump && p.vy < -160) p.vy = -160;
   p.vy = Math.min(p.vy + GRAV * dt, MAXF);
+  p.gliding = outfit === 'cape' && keys.jump && !p.onGround && !p.climb && p.vy > 60;   // the flag cape: hold jump to float down
+  if (p.gliding) p.vy = 60;
 }
 function supportedAt(nx) {
   const ty = Math.floor((p.y + p.h + 1) / T);
@@ -839,7 +876,7 @@ function supportedAt(nx) {
   return false;
 }
 function gotCoin(x, y) {
-  lv.coinsGot++; coinBank++; sfx.coin();
+  lv.coinsGot++; coinBank++; walletAdd++; sfx.coin();
   if (coinBank % 100 === 0) { lives++; sfx.star(); floats.push({ s: '1UP!', x: p.x + p.w / 2, y: p.y - 14, life: 1.4, col: '#4dff7a' }); }
 }
 function timers(dt) {
@@ -854,8 +891,10 @@ function pickups() {
     if (u.type === 'record') { lives++; sfx.star(); floats.push({ s: '+1 LIFE', x: u.x * T + 8, y: u.y * T - 6, life: 1.2, col: '#ffcc33' }); }
     else { p.shades = 7; sfx.key(); floats.push({ s: 'HATER BLOCKERS', x: u.x * T + 8, y: u.y * T - 6, life: 1.4, col: '#cfc3e0' }); }
   }
-  for (const c of lv.coins) if (!c.got && overlap(p, { x: c.x * T + 3, y: c.y * T + 2, w: 10, h: 12 })) {
+  const reach = outfit === 'bandana' ? 22 : 0;   // the bandana pulls in nearby coins
+  for (const c of lv.coins) if (!c.got && overlap(p, { x: c.x * T + 3 - reach, y: c.y * T + 2 - reach, w: 10 + reach * 2, h: 12 + reach * 2 })) {
     c.got = true; gotCoin(); burst(c.x * T + 8, c.y * T + 8, '#ffcc33', 5);
+    if (reach) for (let i = 1; i < 6; i++) particles.push({ x: c.x * T + 8 + (p.x + p.w / 2 - c.x * T - 8) * i / 6, y: c.y * T + 8 + (p.y + 14 - c.y * T - 8) * i / 6, vx: 0, vy: 0, life: 0.1 + i * 0.05, col: '#ffcc33' });
   }
   for (const s of lv.stars) if (!s.got && overlap(p, { x: s.x * T + 2, y: s.y * T + 2, w: 12, h: 12 })) {
     s.got = true; lv.starsGot++; sfx.star(); burst(s.x * T + 8, s.y * T + 8, '#fff2a8', 14);
@@ -896,7 +935,7 @@ function updateSide(dt) {
         e.dead = true; e.deadT = 0; p.vy = keys.jump ? -400 : -280; sfx.stomp();
         burst(e.px + 7, e.py + 4, '#cfc3e0', 6);
         floats.push({ s: 'STOMP', x: e.px + 7, y: e.py - 10, life: 0.6, col: '#f3ead8' });
-      } else { die(); return; }
+      } else if (hit()) return;
     }
   }
   lv.enemies = lv.enemies.filter(e => !(e.dead && e.deadT > 0.5));
@@ -976,7 +1015,7 @@ function updateClimb(dt) {
         if (!L.stage) { b.flee = true; L.rollers = []; floats.push({ s: "YOU'LL NEVER CATCH ME!", x: clamp(bb.x + 9, 96, 224), y: bb.y - 14, life: 2.4, col: '#ff6b6b' }); }
         else if (b.hp <= 0) { b.dead = true; b.deadT = 0; L.rollers = []; masters++; sfx.clear(); floats.push({ s: 'MASTERS ' + masters + '/7', x: 160, y: bb.y - 26, life: 2, col: '#ffcc33' }); }
         else floats.push({ s: 'ONE MORE!', x: bb.x + 9, y: bb.y - 12, life: 1.2, col: '#ffcc33' });
-      } else if (!stomp && b.safe <= 0 && p.inv <= 0 && p.shades <= 0) { die(); return; }
+      } else if (!stomp && b.safe <= 0 && p.inv <= 0 && p.shades <= 0) { if (hit()) return; }
       else if (!stomp) { p.x = p.x + p.w / 2 < bb.x + bb.w / 2 ? bb.x - p.w : bb.x + bb.w; p.vx = 0; }   // still recovering: just shoves you aside
     }
   } else {
@@ -995,7 +1034,7 @@ function updateClimb(dt) {
       }
     }
     r.air = landed ? 0 : r.air + dt;
-    if (p.inv <= 0 && p.shades <= 0 && overlap(p, { x: r.x + 4, y: r.y + 3, w: r.w - 8, h: r.h - 4 })) { die(); return; }
+    if (p.inv <= 0 && p.shades <= 0 && overlap(p, { x: r.x + 4, y: r.y + 3, w: r.w - 8, h: r.h - 4 })) { if (hit()) return; }
   }
   L.rollers = L.rollers.filter(r => r.y < CLIMB_H + 20 && r.x > -30 && r.x < W + 30);
   const target = p.y + p.h / 2 - 100;
@@ -1186,6 +1225,15 @@ function drawPlayer() {
   if (p.inv > 0 && Math.floor(t * 20) % 2) return;
   if (p.shades > 0) ctx.globalAlpha = p.shades < 2 && Math.floor(t * 10) % 2 ? 0.8 : 0.45;
   const cx = Math.round(p.x + p.w / 2), feet = Math.round(p.y + p.h);
+  if (fitImg && ready(fitImg)) {   // wearing merch: same poses, from the outfit's strip (front-facing frames never flip)
+    if (p.climb) drawFit(Math.floor(p.anim * 6) % 2 ? 7 : 8, cx, feet + 3, 1);
+    else if (lv.kind === 'climb' && lv.boss.dead && p.onGround) drawFit(9, cx, feet, 1);
+    else if (state === 'dead') drawFit(6, cx, feet, p.face);
+    else if (p.airT > 0.06) drawFit(p.gliding ? 1 : 0, cx, feet, p.face);
+    else if (Math.abs(p.vx) > 25) drawFit(Math.floor(p.anim / 9) % 6, cx, feet, p.face);
+    else drawFit(10, cx, feet, 1);
+    ctx.globalAlpha = 1; return;
+  }
   if (p.climb) sprFeet(Math.floor(p.anim * 6) % 2 ? 'climb1' : 'climb2', cx, feet + 3);
   else if (lv.kind === 'climb' && lv.boss.dead && p.onGround) sprFeet('victory', cx, feet);
   else {
@@ -1262,6 +1310,10 @@ function hud() {
   }
   if (p.shades > 0) { spr('shades', 104, 7); text(String(Math.ceil(p.shades)), 124, 5, '#cfc3e0'); }
   text('MASTERS ' + masters + '/7', 200, 5, '#ffcc33', 8, 'center');
+  if (p.armor > 0) {   // Battle Born's extra hit, waiting
+    ctx.fillStyle = '#e8413c'; ctx.beginPath(); ctx.moveTo(266, 4); ctx.lineTo(274, 4); ctx.lineTo(274, 9); ctx.lineTo(270, 13); ctx.lineTo(266, 9); ctx.fill();
+    rect('#f3ead8', 269, 6, 2, 4);
+  }
   ctx.drawImage(SPR.heart, 278, 5);
   text('x' + lives, 288, 5);
 }
