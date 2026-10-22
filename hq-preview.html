@@ -107,7 +107,7 @@ const CHAPTERS = [['CHAPTER 2 · THE UNDERGROUND', 'Northtown · Boulder Highway
 const FRAMES = VIDEOS.map(v => ['1', '2', '3', 'hqdefault'].map(n => { const im = new Image(); im.src = 'https://i.ytimg.com/vi/' + v.id + '/' + n + '.jpg'; return im; }));
 // The TV wall plays Miles's video files on every screen, with sound, the whole time you're in HQ.
 // Add a file here for each video (YouTube can't play inside the game picture; it opens when you walk up to the wall).
-const TV_REEL = [{ title: 'North Star Society card', src: CARD_VIDEO }];
+const TV_REEL = MP4 ? [{ title: 'Punch Line Academy cypher', src: 'video/tv-1.mp4' }] : [{ title: 'North Star Society card', src: CARD_VIDEO }];
 let reelIdx = 0, heard = false;
 const tv = document.createElement('video');
 tv.src = TV_REEL[0].src; tv.muted = true; tv.playsInline = true; tv.setAttribute('playsinline', ''); tv.volume = 0.5;
@@ -122,36 +122,34 @@ function firstGesture() { heard = true; tv.play().catch(() => {}); tvSound(); } 
 // '#' wall, '.' floor. Stations are boxes you walk up to; "use" is the side you press A from.
 const ROOMS = {
   hq: {
-    map: [
-      '##############################',
-      '##############################',
-      '##############################',
-      '#............................#',
-      '#............................#',
-      '#............................#',
-      '#............................#',
-      '#............................#',
-      '#............................#',
-      '#............................#',
-      '#............................#',
-      '#............................#',
-      '#............................#',
-      '#............................#',
-      '#............................#',
-      '#............................#',
-      '#............................#',
-      '##############################',
+    img: 'images/hq-room.webp', w: 500, h: 279,
+    // the floor you can walk on: back wall (with the step beside the elevator), side walls, front edge
+    floor: [[26, 104], [264, 104], [264, 83], [465, 83], [486, 277], [3, 277]],
+    // furniture you can't walk through (blocked all the way back to the wall, so Miles never ends up "behind" it)
+    solids: [
+      { x: 19, y: 82, w: 43, h: 73 },    // jukebox
+      { x: 247, y: 101, w: 15, h: 13 },  // floor lamp
+      { x: 264, y: 82, w: 15, h: 10 },   // floor lamp
+      { x: 310, y: 82, w: 124, h: 54 },  // couch
+      { x: 447, y: 82, w: 20, h: 37 },   // side table and lamp
+      { x: 72, y: 217, w: 137, h: 62 },  // arcade cabinets
+      { x: 392, y: 210, w: 87, h: 67 },  // merch rack
     ],
-    spawn: { x: 14.5 * T, y: 5 * T, face: 'down' },
+    spawn: { x: 190, y: 116, face: 'down' },
     things: [
-      { id: 'trophy', x: 3, y: 1, w: 6, h: 2, label: 'TROPHY WALL', wall: true },
-      { id: 'elevator', x: 13, y: 0, w: 4, h: 3, label: 'ELEVATOR', wall: true },
-      { id: 'tv', x: 19, y: 1, w: 9, h: 2, label: 'TV WALL', wall: true },
-      { id: 'jukebox', x: 1, y: 5, w: 2, h: 3, label: 'JUKEBOX' },
-      { id: 'couch', x: 20, y: 6, w: 7, h: 1, solid: true },
-      { id: 'arcade', x: 2, y: 13, w: 7, h: 2, label: 'ARCADE' },
-      { id: 'merch', x: 21, y: 13, w: 7, h: 2, label: 'MERCH RACK' },
-      { id: 'door', x: 29, y: 9, w: 1, h: 2, label: 'THE STUDIO · COMING SOON' },   // opens later: door: { to: 'studio', x: 1.5 * T, y: 7 * T, face: 'right' }
+      { id: 'trophy', x: 46, y: 10, w: 89, h: 100, label: 'TROPHY WALL' },
+      { id: 'elevator', x: 150, y: 15, w: 80, h: 95, label: 'ELEVATOR' },
+      { id: 'tv', x: 282, y: 10, w: 175, h: 130, label: 'TV WALL' },
+      { id: 'jukebox', x: 19, y: 82, w: 45, h: 75, label: 'JUKEBOX' },
+      { id: 'arcade', x: 72, y: 212, w: 137, h: 67, label: 'ARCADE' },
+      { id: 'merch', x: 392, y: 205, w: 87, h: 72, label: 'MERCH RACK' },
+      { id: 'door', x: 466, y: 100, w: 24, h: 122, label: 'THE STUDIO · COMING SOON' },   // opens later
+    ],
+    // the three TV screens in the art (corners clockwise from top-left)
+    screens: [
+      [[285.75, 18], [333, 14.75], [333, 47.5], [285.75, 50.5]],
+      [[340.75, 13.75], [399.75, 13.75], [399.75, 44.5], [340.75, 44.5]],
+      [[407.5, 14.75], [454.5, 17.75], [454.75, 50.5], [407.5, 47.5]],
     ],
   },
   studio: {
@@ -181,7 +179,9 @@ const ROOMS = {
 };
 let room = 'hq', R = ROOMS.hq;
 const solidTile = (tx, ty) => { const row = R.map[ty]; return !row || row[tx] === undefined || row[tx] === '#'; };
-const thingBox = o => ({ x: o.x * T, y: o.y * T, w: o.w * T, h: o.h * T });
+const thingBox = o => R.img ? o : { x: o.x * T, y: o.y * T, w: o.w * T, h: o.h * T };
+const roomW = () => R.img ? R.w : R.map[0].length * T, roomH = () => R.img ? R.h : R.map.length * T;
+function inside(px, py, poly) { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) c = !c; } return c; }
 const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
 /* ---------- Miles (top-down): feet box for collisions ---------- */
@@ -191,6 +191,7 @@ function enter(name, spot) {
   const s = spot || R.spawn; P.x = s.x - P.w / 2; P.y = s.y; P.face = s.face;
 }
 function blocked(b) {
+  if (R.img) return ![[b.x, b.y], [b.x + b.w, b.y], [b.x, b.y + b.h], [b.x + b.w, b.y + b.h]].every(([x, y]) => inside(x, y, R.floor)) || R.solids.some(o => overlap(b, o));
   for (let ty = Math.floor(b.y / T); ty <= Math.floor((b.y + b.h - 0.01) / T); ty++)
     for (let tx = Math.floor(b.x / T); tx <= Math.floor((b.x + b.w - 0.01) / T); tx++) {
       if (tx < 0 || tx >= R.map[0].length) continue;   // open doorways lead off the map edge
@@ -298,8 +299,7 @@ function update(dt) {
     const nx = { x: P.x + dx * SPEED * n * dt, y: P.y, w: P.w, h: P.h }; if (!blocked(nx)) P.x = nx.x;
     const ny = { x: P.x, y: P.y + dy * SPEED * n * dt, w: P.w, h: P.h }; if (!blocked(ny)) P.y = ny.y;
     P.step += dt;
-    const cols = R.map[0].length;   // walking out an open doorway
-    if (P.x > cols * T - 2 || P.x < -P.w + 2) { const d = R.things.find(o => o.door); if (d) enter(d.door.to, d.door); }
+    if (!R.img && (P.x > roomW() - 2 || P.x < -P.w + 2)) { const d = R.things.find(o => o.door); if (d) enter(d.door.to, d.door); }   // walking out an open doorway
   } else P.step = 0;
   if (actPressed) { actPressed = false; const o = facing(); if (o) useThing(o); }
 }
@@ -309,7 +309,36 @@ function rect(c, x, y, w, h) { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); }
 function txt(s, x, y, c = '#f3ead8', size = 6, align = 'center') { ctx.font = size + 'px ' + FONT; ctx.textAlign = align; ctx.textBaseline = 'top'; ctx.fillStyle = '#000'; ctx.fillText(s, x + 0.5, y + 0.5); ctx.fillStyle = c; ctx.fillText(s, x, y); }
 function star(cx, cy, r, c) { ctx.fillStyle = c; ctx.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.42 : r; ctx.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); } ctx.fill(); }
 let t = 0;
+const roomImg = new Image(); roomImg.src = ROOMS.hq.img;
+const milesImg = new Image(); milesImg.src = 'images/hq-miles.png';
+const MILES = { cw: 25, h: 48, frames: { down: [0, 1, 2, 3], left: [4, 5, 6, 7], right: [8, 9, 10, 11], up: [12, 13, 14, 15] } };   // world units; atlas is 4x
+function drawScreen(q, i) {   // the TV video, fitted into one screen of the art
+  const xs = q.map(p => p[0]), ys = q.map(p => p[1]), x = Math.min(...xs), y = Math.min(...ys), w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+  ctx.save(); ctx.beginPath(); q.forEach(([px, py], k) => k ? ctx.lineTo(px, py) : ctx.moveTo(px, py)); ctx.closePath(); ctx.clip();
+  rect('#05040d', x, y, w, h);
+  if (tv.readyState >= 2) {
+    const vw = tv.videoWidth, vh = tv.videoHeight;
+    ctx.globalAlpha = 0.35; const cs = Math.max(w / vw, h / vh); ctx.drawImage(tv, x + (w - vw * cs) / 2, y + (h - vh * cs) / 2, vw * cs, vh * cs); ctx.globalAlpha = 1;   // dim fill behind a phone-shaped video
+    const fs = Math.min(w / vw, h / vh); ctx.drawImage(tv, x + (w - vw * fs) / 2, y + (h - vh * fs) / 2, vw * fs, vh * fs);
+  } else {
+    const im = FRAMES[i % FRAMES.length][Math.floor(t / 2.6 + i * 1.3) % 4];
+    if (im.complete && im.naturalWidth > 0) { const sh = im.naturalWidth * h / w; ctx.drawImage(im, 0, (im.naturalHeight - sh) / 2, im.naturalWidth, sh, x, y, w, h); }
+  }
+  rect('rgba(0,0,0,.16)', x, y + ((t * 14 + i * 9) % h), w, 0.5);   // scanline roll
+  rect('rgba(255,255,255,.05)', x, y, w, h * 0.3);
+  ctx.restore();
+}
 function drawRoom() {
+  if (R.img) {
+    if (roomImg.complete && roomImg.naturalWidth) ctx.drawImage(roomImg, 0, 0, R.w, R.h); else rect('#140f24', 0, 0, R.w, R.h);
+    R.screens.forEach(drawScreen);
+    const j = R.things.find(o => o.id === 'jukebox'), pulse = songOn() ? 0.22 + 0.12 * Math.sin(t * 9) : 0.08 + 0.04 * Math.sin(t * 2);
+    ctx.globalCompositeOperation = 'lighter'; const gr = ctx.createRadialGradient(j.x + 22, j.y + 30, 2, j.x + 22, j.y + 30, 34);
+    gr.addColorStop(0, `rgba(190,120,255,${pulse})`); gr.addColorStop(1, 'rgba(190,120,255,0)'); ctx.fillStyle = gr; ctx.fillRect(j.x - 14, j.y - 6, 72, 80); ctx.globalCompositeOperation = 'source-over';
+    const f = facing();
+    if (f) { const bob = Math.sin(t * 6) * 1.5; ctx.fillStyle = '#ffcc33'; ctx.beginPath(); const cx = Math.min(Math.max(f.x + f.w / 2, 6), R.w - 6), cy = Math.max(f.y, 4) + bob; ctx.moveTo(cx - 4, cy); ctx.lineTo(cx + 4, cy); ctx.lineTo(cx, cy + 5); ctx.fill(); }
+    return;
+  }
   const rows = R.map.length, cols = R.map[0].length;
   for (let ty = 0; ty < rows; ty++) for (let tx = 0; tx < cols; tx++) {
     const x = tx * T, y = ty * T;
@@ -381,6 +410,12 @@ function drawThing(o) {
   }
 }
 function drawMiles() {
+  if (R.img && milesImg.complete && milesImg.naturalWidth) {
+    const cx = P.x + P.w / 2, fy = P.y + P.h, list = MILES.frames[P.face], k = P.step ? list[1 + Math.floor(P.step * 7) % 3] : list[0];
+    ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(cx, fy - 1, 9, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.drawImage(milesImg, k * MILES.cw * 4, 0, MILES.cw * 4, MILES.h * 4, Math.round((cx - MILES.cw / 2) * 4) / 4, Math.round((fy - MILES.h + 1) * 4) / 4, MILES.cw, MILES.h);
+    return;
+  }
   const cx = P.x + P.w / 2, fy = P.y + P.h, bob = P.step ? Math.round(Math.sin(P.step * 14)) : 0;
   rect('rgba(0,0,0,.4)', cx - 7, fy - 2, 14, 4);
   const legs = P.step ? (Math.sin(P.step * 14) > 0 ? 2 : -2) : 0;
@@ -396,12 +431,17 @@ function drawMiles() {
 function render() {
   ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
   rect('#05040d', 0, 0, W, H);
-  const rw = R.map[0].length * T, rh = R.map.length * T;
+  const rw = roomW(), rh = roomH();
   const camX = rw <= W ? (rw - W) / 2 : Math.max(0, Math.min(rw - W, P.x + P.w / 2 - W / 2));
-  const camY = rh <= H ? (rh - H) / 2 : Math.max(0, Math.min(rh - H, P.y - H / 2));
-  ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY));
+  const camY = rh <= H ? (rh - H) / 2 : Math.max(0, Math.min(rh - H, P.y - 20 - H / 2));
+  ctx.save(); ctx.translate(-Math.round(camX * SCALE) / SCALE, -Math.round(camY * SCALE) / SCALE);   // whole screen pixels keep the art crisp
   drawRoom();
   drawMiles();
+  if (window.__hqDebug && R.img) {   // outlines for lining up collisions with the art
+    ctx.lineWidth = 0.6; ctx.strokeStyle = '#0f0'; ctx.beginPath(); R.floor.forEach(([x, y], k) => k ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.stroke();
+    ctx.strokeStyle = '#f00'; R.solids.forEach(o => ctx.strokeRect(o.x, o.y, o.w, o.h));
+    ctx.strokeStyle = '#0ff'; R.things.forEach(o => ctx.strokeRect(o.x, o.y, o.w, o.h));
+  }
   ctx.restore();
   const f = panelEl.hidden && facing();
   if (f) { rect('rgba(5,4,15,.85)', 0, H - 18, W, 18); rect('#ffcc33', 0, H - 18, W, 1); txt((TOUCH ? 'TAP A' : 'SPACE') + ' · ' + f.label, W / 2, H - 12, '#ffcc33', 6); }

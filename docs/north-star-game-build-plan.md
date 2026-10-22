@@ -127,16 +127,16 @@ Each outfit is a real piece from the collection with its own perk, and the merch
 Work through it in this order: each batch unlocks the next piece of building. Higgsfield prompts are written batch by batch, matched to the game's layout, so ask for the next batch when you're ready for it. Everything else (levels, bosses, controls, saving, the sheet) gets built from these.
 
 ### Batch 1: HQ (prompts already written)
-- [ ] HQ main floor (1 image)
-- [ ] The Studio (1 image)
-- [ ] Miles walking, top-down, 4 directions (1 sprite sheet)
-- [ ] Each Studio crew member as a standing sprite, made from their photo (1 per person)
+- [x] HQ main floor (1 image)
+- [ ] The Studio (1 image): on hold until the Studio opens
+- [x] Miles walking, top-down, 4 directions (1 sprite sheet)
+- [ ] Each Studio crew member as a standing sprite, made from their photo (1 per person): on hold
 
 ### Content from Miles (no art needed)
-- [ ] Studio crew list: name, what they did on NORTH STAR, photo, Instagram or link
-- [x] TV wall: first 3 videos in (Shade 45 cypher, Unexpected: Up Next, 5th Element Hip Hop Show). Add music videos, BTS and the listening party replay anytime
+- [ ] Studio crew list: on hold until the Studio opens
+- [x] TV wall: the Punch Line Academy cypher clip plays on the TVs; YouTube videos in (Shade 45 cypher, Unexpected: Up Next, 5th Element Hip Hop Show). Add music videos, BTS and the listening party replay anytime
 - [x] Jukebox: Blame the Weather Man, Badu, Like That are in. Send more anytime
-- [ ] Merch store link
+- [ ] Merch store link (coming from Miles)
 - [x] Chapter 3 cities: Los Angeles, Houston, Atlanta, New York (confirmed)
 - [ ] Tap Card unlock codes: yes or no
 
