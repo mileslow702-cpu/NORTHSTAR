@@ -320,7 +320,9 @@ function useThing(o) {
   if (o.id === 'elevator') {
     openPanel('<h2>ELEVATOR</h2><p class="sub">Pick a floor. New chapters open here as they drop.</p><ul class="rows">' +
       `<li><span>CHAPTER 1 · THE BREAKOUT<small>${LEVELS.join(' · ')}</small></span><a class="btn" href="${GAME_URL}">PLAY</a></li>` +
-      CHAPTERS.map(([n, d]) => `<li class="lock"><span>${n}<small>${d}</small></span><span class="btn ghost">SOON</span></li>`).join('') +
+      CHAPTERS.map(([n, d], i) => i === 0   // Chapter 2 is playable; 3 and 4 are on the way
+        ? `<li><span>${n}<small>${d}</small></span><a class="btn" href="${GAME_URL}?ch=2">${store.get('ns-ch2-v1', null) ? 'REPLAY' : 'PLAY'}</a></li>`
+        : `<li class="lock"><span>${n}<small>${d}</small></span><span class="btn ghost">SOON</span></li>`).join('') +
       `<li><span>MAIN MENU<small>Back to the title screen</small></span><a class="btn ghost" href="${GAME_URL}">GO</a></li></ul>`);
   } else if (o.id === 'jukebox') {
     const row = (s, i) => `<li><span>${s.title}${s.credit ? '<small>' + s.credit + '</small>' : ''}</span><button class="btn" data-song="${i}">${jukeIdx === i && jukeAudio && !jukeAudio.paused ? 'PAUSE' : 'PLAY'}</button></li>`;
@@ -619,7 +621,7 @@ const hqRec = store.get('ns-hq-v1', null) || {};
 if (!hqRec.seen) {   // first time in: say what HQ is
   store.set('ns-hq-v1', Object.assign({ at: new Date().toISOString() }, hqRec, { seen: true }));
   openPanel('<h2>WELCOME TO NORTH STAR HQ</h2><p class="sub">You beat Chapter 1, so the doors are open. Walk up to anything that glows.</p><ul class="rows">' +
-    '<li><span>ELEVATOR<small>Replay Chapter 1 now. Chapters 2, 3 and 4 open here next</small></span></li>' +
+    '<li><span>ELEVATOR<small>Play Chapter 1 and Chapter 2. Chapters 3 and 4 open here next</small></span></li>' +
     '<li><span>DO BETTER ARCADE<small>Miles Low\'s other games and the Daily Spin</small></span></li>' +
     '<li><span>MERCH RACK<small>Outfits with real powers, unlocked with your coins</small></span></li>' +
     '<li><span>JUKEBOX + TV WALL<small>The music and the videos</small></span></li></ul>' +

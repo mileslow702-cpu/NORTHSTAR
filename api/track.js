@@ -17,7 +17,7 @@ module.exports = async (req, res) => {
     type: 'session', sessionId, email, name: clean(b.name, 60),
     startedAt: new Date(started && Math.abs(started - now) < 864e5 ? started : now).toISOString(),
     minutes: Math.round(num(b.minutes, 0, 1440) * 10) / 10,
-    levelNum: Math.round(num(b.levelNum, 0, 6)), level: clean(b.level, 40),
+    levelNum: Math.round(num(b.levelNum, 0, 20)), level: clean(b.level, 40),
     ending: clean(b.ending, 40), prize: clean(b.prize, 80), updatedAt: new Date().toISOString(),
   };
   if ((await toSheet(entry)) === 'fail') return res.status(503).json({ ok: false });   // the game keeps it and retries

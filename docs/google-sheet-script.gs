@@ -3,7 +3,7 @@
 const PLAYER_COLS = ['First Seen', 'Name', 'Email', 'Visits', 'Minutes Played', 'Furthest Level', 'Beat The Game', 'Best Ending', 'Prize', 'Last Seen'];
 const SESSION_COLS = ['Started', 'Name', 'Email', 'Visit #', 'Minutes Played', 'Furthest Level', 'Ending', 'Prize', 'Last Update', 'Session ID'];
 const SOCIETY_COLS = ['Date', 'Name', 'Email', 'Phone', 'Texts OK', 'Prize'];
-const RANK = { 'Beat the game': 3, 'Signed the contract': 2, 'Game over': 1 };
+const RANK = { 'Beat Chapter 2': 4, 'Beat the game': 3, 'Signed the contract': 2, 'Game over': 1 };
 const TZ = 'America/Los_Angeles';            // Las Vegas time
 const DATE_FORMAT = 'm/d/yyyy h:mm am/pm';
 const DATE_COLS = { Players: ['A', 'J'], Sessions: ['A', 'I'], Society: ['A'] };
@@ -49,7 +49,7 @@ function session(d) {
   const ending = mine.map(x => String(x[6])).filter(Boolean).sort((a, b) => (RANK[b] || 0) - (RANK[a] || 0))[0] || '';
   const prize = mine.map(x => String(x[7])).filter(Boolean).pop() || '';
   const minutes = Math.round(mine.reduce((a, x) => a + Number(x[4] || 0), 0) * 10) / 10;
-  const summary = [mine.length, minutes, level, ending === 'Beat the game' ? 'Yes' : 'No', ending, prize, new Date(d.updatedAt)];
+  const summary = [mine.length, minutes, level, (RANK[ending] || 0) >= 3 ? 'Yes' : 'No', ending, prize, new Date(d.updatedAt)];
   const p = tab('Players', PLAYER_COLS);
   const pr = rowOf(p, 3, d.email);
   if (pr) p.getRange(pr, 4, 1, summary.length).setValues([summary]);
