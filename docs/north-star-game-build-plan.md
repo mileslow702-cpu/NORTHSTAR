@@ -33,7 +33,7 @@ HQ is a room you walk around in, top-down like Pokémon Red/Blue, but drawn rich
 | **Elevator** | Play the game: every chapter, and replay any level |
 | **Jukebox** | A working jukebox: pick a song and it plays |
 | **TV wall** | Screens on the wall loop Miles Low videos the whole time, like a barbershop or smoke shop TV. Walk up to watch one with sound |
-| **Arcade** | Cabinets for the mini-games |
+| **Do Better Arcade** | Miles's other games (Need A Ride?, HOUSE RULES) and the North Star mini-games |
 | **Merch rack / closet** | Outfits for Miles in the game, each one a real North Star piece with a link to buy it |
 | **Trophy wall** | Masters, best times, the share card, their Society card and member number |
 | **Door to the Studio** | Leads to the second room |
@@ -93,7 +93,10 @@ Each outfit is a real piece from the collection with its own perk, and the merch
 - **Gold Chain:** double coins for 20 seconds
 - Shades (hater blockers) and the gold record (+1 life) stay
 
-## 6. Mini-games (the Arcade)
+## 6. The Do Better Arcade (HQ's arcade cabinets)
+
+The arcade is the **Do Better Arcade**: every Miles Low game in one place. It already links to **Need A Ride?** (need-a-ride.vercel.app) and **HOUSE RULES** (house-rules-five.vercel.app), and new games get added to the list as they launch. The North Star mini-games live here too:
+
 
 1. **Rap Battle:** rooted in Miles's battle-rap history. Pick the hardest bar and land it on the beat against label execs, over Miles's own instrumentals.
 2. **Daily Spin:** one Vegas-style spin per day for coins and outfit pieces. A reason to come back every day, tracked on the sheet as return visits.
@@ -141,9 +144,10 @@ Work through it in this order: each batch unlocks the next piece of building. Hi
 - [ ] Tap Card unlock codes: yes or no
 
 ### Batch 2: Outfits + power-ups
-- [ ] Miles side-view sprite sheet in each outfit, same poses as the current sheet: DOPESQUE 702 tee, Battle Born 2015 tee, North Star bandana, North Star flag cape, Tap Card exclusive (5 sheets)
-- [ ] New power-up icons: mic, 808 Drop, gold chain (1 sheet)
-- [ ] Daily Spin machine (1 image)
+- [x] Miles in each outfit, run sheet + climb/victory/idle sheet: DOPESQUE 702 tee, Battle Born 2015 tee, North Star bandana, North Star flag cape (8 sheets, generated Oct 22)
+- [ ] Tap Card exclusive outfit: waiting on the Tap Card decision
+- [x] New power-up icons: mic, 808 Drop, gold chain (1 sheet)
+- [x] Daily Spin machine (1 image)
 
 ### Batch 3: Chapter 2 · THE UNDERGROUND
 - [ ] Backgrounds: Northtown, Boulder Highway at night, the Tunnels, the Curator's lair (4 images)

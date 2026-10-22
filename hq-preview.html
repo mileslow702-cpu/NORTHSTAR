@@ -97,6 +97,11 @@ const CREW = [
   { name: 'ENGINEER', role: 'Mix & master', note: 'Name, credits, photo and links go here.', col: '#ffcc33' },
 ];
 const MERCH_URL = 'https://mileslowmusic.com';
+// The Do Better Arcade: Miles's other games, playable from the HQ arcade cabinets
+const DBA_GAMES = [
+  ['NEED A RIDE?', 'Rideshare driving across South LA', 'https://need-a-ride.vercel.app'],
+  ['HOUSE RULES', 'Fly above a futuristic Las Vegas', 'https://house-rules-five.vercel.app'],
+];
 const LEVELS = ['THE STUDIO', 'DOWNTOWN', 'HISTORIC WESTSIDE', 'THE STRIP', 'THE PENTHOUSE'];
 const CHAPTERS = [['CHAPTER 2 · THE UNDERGROUND', 'Northtown · Boulder Highway · the Tunnels · Boss: THE CURATOR'],
   ['CHAPTER 3 · THE BOT FARMS', 'Los Angeles · Houston · Atlanta · New York · the Machine World · Boss: THE BOT FATHER'],
@@ -141,7 +146,7 @@ const ROOMS = {
       { id: 'elevator', x: 150, y: 15, w: 80, h: 95, label: 'ELEVATOR' },
       { id: 'tv', x: 282, y: 10, w: 175, h: 130, label: 'TV WALL' },
       { id: 'jukebox', x: 19, y: 82, w: 45, h: 75, label: 'JUKEBOX' },
-      { id: 'arcade', x: 72, y: 212, w: 137, h: 67, label: 'ARCADE' },
+      { id: 'arcade', x: 72, y: 212, w: 137, h: 67, label: 'DO BETTER ARCADE' },
       { id: 'merch', x: 392, y: 205, w: 87, h: 72, label: 'MERCH RACK' },
       { id: 'door', x: 466, y: 100, w: 24, h: 122, label: 'THE STUDIO · COMING SOON' },   // opens later
     ],
@@ -265,7 +270,8 @@ function useThing(o) {
     cardEl.querySelectorAll('[data-vid]').forEach(b => b.onclick = () => { document.getElementById('yt').src = embed(VIDEOS[+b.dataset.vid].id); });
     tvSound();
   } else if (o.id === 'arcade') {
-    openPanel('<h2>ARCADE</h2><p class="sub">Mini-games.</p><ul class="rows">' +
+    openPanel('<h2>DO BETTER ARCADE</h2><p class="sub">Every Miles Low game in one place.</p><ul class="rows">' +
+      DBA_GAMES.map(([n, d, url]) => `<li><span>${n}<small>${d}</small></span><a class="btn" href="${url}" target="_blank" rel="noopener">PLAY ↗</a></li>`).join('') +
       [['RAP BATTLE', 'Land the hardest bar on the beat'], ['DAILY SPIN', 'One spin a day for coins and outfit pieces'], ['BEAT TAP', 'Tap on the beat to Miles\'s songs']]
         .map(([n, d]) => `<li class="lock"><span>${n}<small>${d}</small></span><span class="btn ghost">SOON</span></li>`).join('') + '</ul>');
   } else if (o.id === 'merch') {
