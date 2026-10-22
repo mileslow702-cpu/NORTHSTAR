@@ -58,6 +58,8 @@ The trail behind the stolen masters goes deeper with every chapter: out of the s
 | **4 · THE COSMIC WAR** | Space, dripped in cosmic Afrofuturism | **ALGOL, THE DEMON STAR** |
 
 ### Chapter 2 · THE UNDERGROUND
+**Built on the preview (Oct 22):** all four levels, the three enemies, the mic / 808 Drop / gold chain, the Curator fight and the story scenes. It opens from the HQ elevator. Boulder Highway scrolls on its own; the Tunnels are dark with a flashlight; in the lair you smash his screens from below, the grate light knocks him to the floor, and you jump on him three times. When it ships, the Google Sheet script needs one small update (new 'Beat Chapter 2' ending).
+
 - **Levels:** Northtown (North Las Vegas) → Boulder Highway (night chase, auto-running) → the Tunnels (the flood tunnels under the Strip, lit by screens and a flashlight) → the Curator's lair.
 - **Enemies:** the bloggers, the basement nerds, the hating tech bros. They live underground and hate from the dark.
 - **Boss: THE CURATOR.** He runs the blogs and gossip sites and thinks he controls the narrative, but he never comes outside. He hides behind a wall of monitors firing hate comments as projectiles. Light is his weakness: knock out his screens and drag him into the light.
@@ -155,10 +157,10 @@ Work through it in this order: each batch unlocks the next piece of building. Hi
 - [ ] Optional: Miles in each outfit walking top-down for HQ (4 sheets). In HQ he wears the NORTHTOWN tee for now
 
 ### Batch 3: Chapter 2 · THE UNDERGROUND
-- [ ] Backgrounds: Northtown, Boulder Highway at night, the Tunnels, the Curator's lair (4 images)
-- [ ] Enemies: blogger, basement nerd, hating tech bro, walking + defeated frames (1 sheet)
-- [ ] THE CURATOR boss: idle, attack, hurt, defeated (1 sheet)
-- [ ] Story scenes: opening and ending (about 4 images)
+- [x] Backgrounds: Boulder Highway at night, the Tunnels, the Curator's lair (Northtown generated, waiting on the file)
+- [x] Enemies: blogger, basement nerd, hating tech bro, walking + defeated frames (3 sheets)
+- [x] THE CURATOR boss: idle, attack, hurt, defeated (1 sheet)
+- [x] Story scenes: opening and ending (4 images; two fixed versions waiting on the files)
 - [ ] Music: instrumentals for the levels and the boss fight (2–3 beats)
 
 ### Batch 4: Chapter 3 · THE BOT FARMS
