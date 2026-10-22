@@ -2,7 +2,7 @@
 
 *Build once: the whole game mapped out, so every piece fits the next. Last updated Oct 22, 2026.*
 
-**Release rule:** the expansion (HQ, Chapters 2–4, outfits, mini-games) ships to the live site all at once, when it's finished. Until then the live game stays as it is, and work in progress lives on a private preview and a separate GitHub branch that doesn't touch the live game.
+**Release rule:** North Star HQ went live Oct 22, 2026, with the outfits, coins and Daily Spin. Chapters 2–4 and the rest get built on the `expansion` branch and private previews, and each one goes live when it's finished.
 
 ---
 
