@@ -64,6 +64,11 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
 .cover-go.gate{animation:coverPulse 1.1s ease-in-out infinite}
 .cover-go:disabled{background:#3a3260;color:#cfc3e0;border-bottom-color:#241e44;box-shadow:0 0 0 3px #100c22;animation:none;cursor:default}
 @keyframes coverPulse{50%{transform:scale(1.05);box-shadow:0 0 0 3px #100c22,0 0 36px rgba(255,204,51,.75)}}
+.cover-go,.cover-info,.cover-badge{grid-row:2}
+.cover-hq{grid-column:2;grid-row:1;justify-self:center;font:inherit;font-size:10px;letter-spacing:.08em;color:var(--accent);text-decoration:none;white-space:nowrap;
+  background:rgba(16,12,34,.85);border:2px solid var(--accent);border-bottom-width:4px;border-radius:8px;padding:11px 16px;box-shadow:0 0 0 3px #100c22,0 0 18px rgba(255,204,51,.3)}
+.cover-hq[hidden]{display:none}
+.cover-hq:focus-visible{outline:2px solid #3ee6ff;outline-offset:3px}
 .cover-info{grid-column:1;justify-self:start;display:flex;align-items:center;gap:8px;font:inherit;font-size:9px;letter-spacing:.12em;color:var(--fg);
   background:rgba(16,12,34,.7);border:2px solid var(--pad-edge);border-radius:8px;padding:10px 12px;cursor:pointer;min-height:44px}
 .cover-info svg{width:16px;height:16px;fill:currentColor}
@@ -146,6 +151,10 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
 .soc-btn:hover{filter:brightness(1.08)}
 .soc-btn:active{transform:translateY(2px);border-bottom-width:2px}
 .soc-btn:disabled{opacity:.55;cursor:default}
+a.soc-btn{display:inline-block;text-decoration:none;box-sizing:border-box;text-align:center}
+.hq-box{text-align:center;border-color:var(--accent);background:linear-gradient(#1a1440,#100c22)}
+.hq-box p{font-family:var(--sans);font-size:15px;line-height:1.55;color:#d9d0ea;margin:0 0 14px}
+.hq-box .soc-btn{width:100%}
 .soc-btn.ghost{background:transparent;color:var(--fg);border:2px solid var(--pad-edge);border-bottom-width:4px}
 .soc-btn:focus-visible,.soc-form input:focus-visible{outline:2px solid #3ee6ff;outline-offset:2px}
 .soc-gallery{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -198,6 +207,7 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
   <button class="mute" aria-label="Music on or off" aria-pressed="false"><svg viewBox="0 0 12 12"><path d="M4 2l7-1.5v8a1.8 1.8 0 1 1-1.2-1.7V3.2L5.2 4.1v5.4A1.8 1.8 0 1 1 4 7.8z"/></svg></button>
   <div class="cover-ui">
     <button class="cover-info" id="cover-info"><svg viewBox="0 0 16 16"><path d="M1 1h14v14H1zm2 2v10h10V3zm4 1h2v2H7zm0 3h2v5H7z"/></svg>INSTRUCTIONS</button>
+    <a class="cover-hq" id="cover-hq" href="hq.html" hidden>★ NORTH STAR HQ ▸</a>
     <button class="cover-go gate" id="cover-go">TAP TO ENTER</button>
     <div class="cover-badge" aria-label="Rated 702"><small>RATED</small><b>702</b></div>
   </div>
@@ -292,7 +302,12 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none;
       <button class="soc-btn" id="share-go" type="button">SHARE MY CARD ▸</button>
     </div>
     <p class="soc-note" id="soc-preview" hidden>Preview mode: this entry wasn't sent anywhere. Sign-ups save on the live site.</p>
-    <button class="soc-btn" data-step="done" id="soc-again">PLAY AGAIN ▸</button>
+    <div class="soc-box hq-box" data-step="welcome done">
+      <h3>★ NORTH STAR HQ UNLOCKED ★</h3>
+      <p>Beating Chapter 1 opened the doors to North Star HQ: the next chapters, the Do Better Arcade, the Daily Spin, the jukebox, the TV wall and the merch rack.</p>
+      <a class="soc-btn" href="hq.html" id="soc-hq">ENTER NORTH STAR HQ ▸</a>
+    </div>
+    <button class="soc-btn ghost" data-step="done" id="soc-again">PLAY AGAIN</button>
     <figure class="soc-gallery" data-step="welcome done" style="margin:0">
       <img class="wide" src="images/society-shirts.webp" alt="Three North Star shirts: Dopesque 702 plate, Dopesque 2015 Battle Born flag, and the blue Northtown dove" loading="lazy">
       <img src="images/society-cover.webp" alt="NORTH STAR by Miles Low album cover" loading="lazy">
@@ -411,6 +426,10 @@ function readOutfit() {
   if (o !== outfit) { outfit = o; fitImg = null; if (o !== 'default') { fitImg = new Image(); fitImg.src = 'images/outfit-' + o + '.png'; } }
 }
 readOutfit();
+// North Star HQ opens once they beat Chapter 1. Players who beat it before HQ existed already have a best run or a Society card saved.
+const HQ_KEY = 'ns-hq-v1';
+function hqOpen() { try { return !!(localStorage.getItem(HQ_KEY) || localStorage.getItem('ns-best-v1') || localStorage.getItem('ns-society-v1')); } catch (e) { return false; } }
+function unlockHQ() { try { if (!localStorage.getItem(HQ_KEY)) localStorage.setItem(HQ_KEY, JSON.stringify({ at: new Date().toISOString() })); } catch (e) {} }
 let walletAdd = 0;   // coins picked up this run, banked for the HQ (outfits, Daily Spin)
 function bankCoins() {
   if (!walletAdd) return;
@@ -1500,6 +1519,7 @@ function coverButton() {
   if (b.textContent !== label) b.textContent = label;
   b.disabled = coverEntered && !ready;
   b.classList.toggle('gate', !coverEntered);
+  document.getElementById('cover-hq').hidden = !(coverEntered && hqOpen());
 }
 function coverEnter() { if (!coverEntered) { coverEntered = true; audioOn(); coverButton(); } }
 function coverGo() {
@@ -1603,6 +1623,7 @@ const BEST_KEY = 'ns-best-v1';
 function bestLoad() { try { return JSON.parse(localStorage.getItem(BEST_KEY) || 'null'); } catch (e) { return null; } }
 function trackState(s) {
   if (s === 'endTrue') {
+    unlockHQ();
     const b = bestLoad(), now = { time: Math.round(runTime), coins: totals.coins, masters };
     if (!b || now.time < b.time) try { localStorage.setItem(BEST_KEY, JSON.stringify(now)); } catch (e) {}
   }

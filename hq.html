@@ -1,10 +1,14 @@
+<!doctype html>
+<html lang="en">
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07060f">
 <title>North Star HQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
-/* HQ layout preview: walkable top-down room. Placeholder shapes stand in for the Higgsfield art. */
+/* NORTH STAR HQ: the walkable room players unlock by beating Chapter 1 */
 :root{--bg:#07060f;--fg:#f3ead8;--accent:#ffcc33;--dim:#7a7199;--pad:#1b1730;--pad-edge:#3a3260;--font:"Press Start 2P",ui-monospace,monospace;--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color-scheme:dark}
 html,body{height:100%}
 body{margin:0;padding:16px;box-sizing:border-box;background:var(--bg);color:var(--fg);font-family:var(--font);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
@@ -42,6 +46,10 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none}
 .card img.wide{width:100%;border-radius:8px;display:block;margin-bottom:12px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 .stats div{border:2px solid #3a3260;border-radius:8px;padding:10px 4px;text-align:center;font-size:7px;letter-spacing:.1em;color:#a99bc2;line-height:2}
+.locked{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:16px;background:#07060f url(images/scene-true.webp) center/cover}
+.locked[hidden]{display:none}
+.locked .card{text-align:center}
+.locked .btn{display:inline-block;font-size:10px;padding:12px 16px;margin-top:4px}
 .stats b{display:block;font-weight:400;font-size:13px;color:var(--accent)}
 /* merch rack closet + Daily Spin */
 .wallet{display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.06em;color:var(--accent);margin:-6px 0 14px}
@@ -74,10 +82,16 @@ canvas{display:block;max-width:100%;image-rendering:pixelated;touch-action:none}
   <button class="act" data-k="act" aria-label="Use">A</button>
 </div>
 <div class="panel" id="panel" hidden role="dialog" aria-modal="true"><div class="card" id="card"></div></div>
+<div class="locked" id="locked" hidden role="dialog" aria-modal="true" aria-labelledby="locked-h">
+  <div class="card"><h2 id="locked-h">NORTH STAR HQ IS LOCKED</h2><p class="sub">Beat Chapter 1, take down the CEO and turn down the deal. Your North Star Society card opens these doors.</p><a class="btn" href="index.html">PLAY CHAPTER 1 ▸</a></div>
+</div>
 
 <script>
 (() => {
 "use strict";
+// Only players who beat Chapter 1 get in (older players count if they already have a best run or a Society card).
+const unlocked = (() => { try { return !!(localStorage.getItem('ns-hq-v1') || localStorage.getItem('ns-best-v1') || localStorage.getItem('ns-society-v1')); } catch (e) { return false; } })();
+if (!unlocked) { document.getElementById('locked').hidden = false; document.querySelector('.stage').hidden = true; return; }
 const W = 320, H = 192, T = 16, SCALE = 4;
 const cv = document.getElementById('hq'), ctx = cv.getContext('2d');
 const TOUCH = matchMedia('(pointer:coarse)').matches;
@@ -155,7 +169,7 @@ const DBA_GAMES = [
   ['NEED A RIDE?', 'Rideshare driving across South LA', 'https://need-a-ride.vercel.app'],
   ['HOUSE RULES', 'Fly above a futuristic Las Vegas', 'https://house-rules-five.vercel.app'],
 ];
-const GAME_URL = /hq-preview/.test(location.pathname) ? 'index.html' : 'game.html';   // where the elevator takes you
+const GAME_URL = 'index.html';   // the game: the elevator and MAIN MENU go here
 const LEVELS = ['THE STUDIO', 'DOWNTOWN', 'HISTORIC WESTSIDE', 'THE STRIP', 'THE PENTHOUSE'];
 const CHAPTERS = [['CHAPTER 2 · THE UNDERGROUND', 'Northtown · Boulder Highway · the Tunnels · Boss: THE CURATOR'],
   ['CHAPTER 3 · THE BOT FARMS', 'Los Angeles · Houston · Atlanta · New York · the Machine World · Boss: THE BOT FATHER'],
@@ -307,7 +321,8 @@ function useThing(o) {
     openPanel('<h2>ELEVATOR</h2><p class="sub">Pick a floor. In the full game this drops you straight into the level.</p><ul class="rows">' +
       '<li><span>CHAPTER 1 · THE BREAKOUT<small>Replay any level</small></span></li>' +
       LEVELS.map((l, i) => `<li><span>${i + 1} · ${l}</span><a class="btn" href="${GAME_URL}">PLAY</a></li>`).join('') +
-      CHAPTERS.map(([n, d]) => `<li class="lock"><span>${n}<small>${d}</small></span><span class="btn ghost">SOON</span></li>`).join('') + '</ul>');
+      CHAPTERS.map(([n, d]) => `<li class="lock"><span>${n}<small>${d}</small></span><span class="btn ghost">SOON</span></li>`).join('') +
+      `<li><span>MAIN MENU<small>Back to the title screen</small></span><a class="btn ghost" href="${GAME_URL}">GO</a></li></ul>`);
   } else if (o.id === 'jukebox') {
     const row = (s, i) => `<li><span>${s.title}${s.credit ? '<small>' + s.credit + '</small>' : ''}</span><button class="btn" data-song="${i}">${jukeIdx === i && jukeAudio && !jukeAudio.paused ? 'PAUSE' : 'PLAY'}</button></li>`;
     openPanel('<h2>JUKEBOX</h2><p class="sub">Pick a song.</p><ul class="rows">' + SONGS.map(row).join('') + '</ul>');
@@ -602,6 +617,17 @@ function render() {
 
 /* ---------- loop ---------- */
 enter('hq');
+const hqRec = store.get('ns-hq-v1', null) || {};
+if (!hqRec.seen) {   // first time in: say what HQ is
+  store.set('ns-hq-v1', Object.assign({ at: new Date().toISOString() }, hqRec, { seen: true }));
+  openPanel('<h2>WELCOME TO NORTH STAR HQ</h2><p class="sub">You beat Chapter 1, so the doors are open. Walk up to anything that glows.</p><ul class="rows">' +
+    '<li><span>ELEVATOR<small>Replay Chapter 1 now. Chapters 2, 3 and 4 open here next</small></span></li>' +
+    '<li><span>DO BETTER ARCADE<small>Miles Low\'s other games and the Daily Spin</small></span></li>' +
+    '<li><span>MERCH RACK<small>Outfits with real powers, unlocked with your coins</small></span></li>' +
+    '<li><span>JUKEBOX + TV WALL<small>The music and the videos</small></span></li></ul>' +
+    '<p></p><button class="btn" id="welcome-go">LET\'S GO ▸</button>');
+  document.getElementById('welcome-go').onclick = closePanel;
+}
 window.__hq = { P, openCloset, openSpin, get wheelRot() { return wheelRot; }, SPIN_SEGS, get room() { return room; }, facing: () => facing() && facing().label, tv: () => (tv.paused ? 'paused' : 'playing') + (tv.muted ? ', muted' : ', sound on') };
 let last = performance.now();
 function frame(now) {
