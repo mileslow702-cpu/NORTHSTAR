@@ -508,7 +508,7 @@ function updateMusic(dt) {
 const AR = {"bossLaugh":[0,0,134,236],"bossIdle":[136,0,120,235],"bossThrow":[258,0,175,235],"bossContract":[435,0,120,231],"bossRun1":[557,0,151,229],"bossRun2":[710,0,141,227],"bossHurt":[853,0,125,225],"climb1":[980,0,86,214],"climb2":[1068,0,82,214],"clone1":[1152,0,128,212],"clone2":[1282,0,124,212],"auntieA":[1408,0,125,210],"auntieB":[1535,0,118,210],"victory":[1655,0,89,207],"fanB":[1746,0,131,204],"djA":[1879,0,99,204],"djB":[1980,0,105,204],"singerB":[2087,0,125,204],"c1djB":[2214,0,115,203],"c1auntieA":[2331,0,92,198],"c1auntieB":[2425,0,109,198],"oldA":[2536,0,92,197],"c1singerB":[2630,0,103,193],"elevator":[2735,0,172,192],"c1fanB":[2909,0,107,191],"c1djA":[3018,0,77,190],"c1singerA":[3097,0,76,188],"fanA":[3175,0,79,184],"singerA":[3256,0,112,184],"c1fanA":[3370,0,79,184],"c1girl":[3451,0,107,184],"c1kid":[3560,0,81,178],"doorOpen":[3643,0,119,174],"doorExit":[3764,0,82,168],"doorLocked":[3848,0,116,160],"bossDead":[0,238,140,155],"kidBoy":[142,238,92,131],"ladder":[236,238,35,120],"kidGirl":[273,238,85,118],"safeOpen":[360,238,99,108],"safe":[461,238,93,99],"cloneDead":[556,238,172,84],"cash":[730,238,67,64],"reel":[799,238,66,64],"star":[867,238,63,63],"record":[932,238,66,63],"contract2":[1000,238,54,58],"coin1":[1056,238,24,57],"coin3":[1082,238,33,57],"contract0":[1117,238,58,56],"contract3":[1177,238,58,56],"cd":[1237,238,56,56],"coin0":[1295,238,54,54],"coin2":[1351,238,54,54],"contract1":[1407,238,56,54],"card":[1465,238,69,42],"girder":[1536,238,109,32],"shades":[1647,238,72,15]};
 const AR2 = {"curatorAttack":[0,0,220,260],"curatorIdle":[222,0,106,240],"blogger1":[330,0,138,220],"blogger2":[470,0,146,220],"nerd1":[618,0,148,220],"nerd2":[768,0,148,220],"techbro1":[918,0,148,220],"techbro2":[1068,0,148,220],"curatorHurt":[1218,0,136,216],"curatorDead":[1356,0,139,172],"bloggerDead":[1497,0,175,102],"techbroDead":[1674,0,172,100],"nerdDead":[1848,0,190,87]};   // Chapter 2 sprites (enemies, THE CURATOR)
 const rectOf = n => AR[n] || AR2[n], atlasOf = n => (AR[n] ? IMG.atlas : IMG.atlas2);
-const BG_W = {"studio": 1380, "fremont": 1476, "arts": 1392, "westside": 1384, "strip": 1376, "boulder": 1384, "tunnels": 1696, "lair": 1280, "northtown": 1384}; // background widths in screen pixels
+const BG_W = {"studio": 1380, "fremont": 1476, "arts": 1392, "westside": 1384, "strip": 1376, "northtown": 1376, "boulder": 1384, "tunnels": 1696, "lair": 1280}; // background widths in screen pixels
 const sprW = n => rectOf(n)[2] / SCALE, sprH = n => rectOf(n)[3] / SCALE;
 function spr(n, x, y, flip) {
   const im = atlasOf(n); if (!im || !ready(im)) return;
@@ -1283,18 +1283,19 @@ const SIGNED_SLIDES = [
   { img: 'scene_signed2', pan: -1, speaker: 'THE CEO', text: "YOU'LL NEVER GET OUT OF THIS CONTRACT." },
 ];
 const C2_SLIDES = [
-  { img: 'scene_c2_open1', pan: 1, text: 'THE MASTERS ARE BACK. BUT OVERNIGHT, EVERY BLOG IN THE CITY IS LYING ON HIS NAME.' },
-  { img: 'scene_c2_open1', pan: -1, text: 'FRAUD. CANCELED. CAREER OVER. EVERY RUMOR TRACES BACK TO ONE STORM DRAIN IN NORTHTOWN.' },
-  { img: 'scene_c2_open2', pan: 1, text: 'SOMEBODY IS RUNNING THE HATE FROM UNDER THE CITY. THEY CALL HIM THE CURATOR.' },
-  { img: 'scene_c2_open2', pan: -1, text: 'HE NEVER COMES OUTSIDE. TIME TO DRAG HIM INTO THE LIGHT.' },
+  { img: 'scene_c2_open1', pan: 1, text: 'NORTH STAR IS OUT. THE CITY IS PLAYING IT. AND THE SYSTEM NEVER SIGNED OFF ON THAT.' },
+  { img: 'scene_c2_open1', pan: -1, text: 'SO THE MACHINE STARTS TALKING. BAD REVIEWS. FAKE STORIES. HEADLINES FROM PEOPLE WHO NEVER PRESSED PLAY.' },
+  { img: 'scene_c2_open2', pan: 1, text: 'EVERY LIE LOADS FROM THE TUNNELS UNDER THE CITY, WHERE THE CURATOR DECIDES WHAT PEOPLE THINK.' },
+  { img: 'scene_c2_open2', pan: -1, text: 'HE NEVER COMES OUTSIDE. SO MILES GOES UNDERGROUND.' },
 ];
 const C2_BOSS_SLIDES = [
-  { img: 'bg_lair', pan: 1, text: 'AT THE END OF THE TUNNELS: A LOCKED GATE, AND A WALL OF SCREENS.' },
-  { img: 'bg_lair', pan: -1, speaker: 'THE CURATOR', red: true, text: "WHO LET YOU DOWN HERE? I DECIDE WHAT THE WORLD THINKS OF YOU." },
+  { img: 'bg_lair', pan: 1, text: 'AT THE END OF THE TUNNELS: A LOCKED GATE. BEHIND IT, A WALL OF SCREENS.' },
+  { img: 'bg_lair', pan: -1, speaker: 'THE CURATOR', red: true, text: "NOBODY HEARS A SONG TILL I SAY IT'S GOOD. AND I SAY YOU'RE FINISHED." },
 ];
 const C2_END_SLIDES = [
-  { img: 'scene_c2_end1', pan: 1, text: 'DAYLIGHT HITS THE CURATOR. HIS SCREENS GO DARK. THE LIES STOP LOADING.' },
-  { img: 'scene_c2_end2', pan: -1, text: 'MILES WALKS OUT OF THE TUNNELS AT SUNRISE. NORTHTOWN WAS WAITING FOR HIM.' },
+  { img: 'scene_c2_end1', pan: 1, text: 'DAYLIGHT HITS THE CURATOR. THE SCREENS GO DARK. THE LIES STOP LOADING.' },
+  { img: 'scene_c2_end1', pan: -1, text: 'DOWN IN THE TUNNELS, THE PEOPLE WHO LIVE THERE SEE IT: THE NORTH STAR, SHINING AT THE WAY OUT.' },
+  { img: 'scene_c2_end2', pan: 1, text: 'THEY FOLLOW HIM UP INTO THE SUNRISE. NORTHTOWN IS WAITING, AND WORD IS OUT: BLOCK PARTY TONIGHT.' },
 ];
 let slideSet = SLIDES, slideDone = () => {};
 function playSlides(set, done) { slideSet = set; slideDone = done; crawlPage = 0; setState('crawl'); }
@@ -1366,13 +1367,14 @@ function nextCrawl() {
 }
 
 /* ---------------- drawing ---------------- */
+const NO_FLIP = new Set(['northtown', 'boulder']);   // real signs: repeat them, never mirror the lettering
 function drawBg(theme, cx, alpha = 1) {
   const im = IMG['bg_' + theme]; if (!ready(im)) { rect('#0a0618', 0, 0, W, H); return; }
   const bw = BG_W[theme] / SCALE, off = cx * 0.2;
   ctx.globalAlpha = alpha;
   for (let i = Math.floor(off / bw); i <= Math.floor((off + W) / bw); i++) {
     const x = snap(i * bw - off);
-    if (i % 2) { ctx.save(); ctx.translate(x + bw, 0); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0, bw, H); ctx.restore(); }
+    if (i % 2 && !NO_FLIP.has(theme)) { ctx.save(); ctx.translate(x + bw, 0); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0, bw, H); ctx.restore(); }
     else ctx.drawImage(im, x, 0, bw, H);
   }
   ctx.globalAlpha = 1;
@@ -1702,7 +1704,7 @@ function render() {
   if (state === 'ch2done') {
     drawCover(IMG.scene_c2_end2, 0.15);
     text('CHAPTER 2 COMPLETE', W / 2, 10, '#ffcc33', 16, 'center');
-    textBox(['THE UNDERGROUND IS CLEAR. THE LIES ARE DOWN.', 'COINS ' + totals.coins + '  ·  NEXT: CHAPTER 3 · THE BOT FARMS'], 140, '#fff2a8');
+    textBox(['THE UNDERGROUND FOLLOWED THE NORTH STAR OUT.', 'COINS ' + totals.coins + '  ·  NEXT: CHAPTER 3 · THE BOT FARMS'], 140, '#fff2a8');
     if (blink() && stateT > 1.5) text(TOUCH ? 'TAP JUMP: BACK TO HQ' : 'PRESS JUMP: BACK TO HQ', W / 2, 180, '#f3ead8', 8, 'center');
     return;
   }

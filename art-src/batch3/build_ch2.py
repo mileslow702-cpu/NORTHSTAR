@@ -38,7 +38,9 @@ meta['bgw'] = bgw; meta['ground'] = ground
 # ---- story scenes: 5:3, like Chapter 1 ----
 for name in ['scene-c2-open1', 'scene-c2-open2', 'scene-c2-end1', 'scene-c2-end2']:
     src = name if os.path.exists(SRC + name + '.png') else name + '-v1'
-    arr = raw(src).astype(np.uint8); H, W = arr.shape[:2]
+    arr = raw(src).astype(np.uint8)
+    if src == 'scene-c2-open2-v1': arr = arr[190:]   # cut the skyline strip with the wrong (Henderson) sign off the top
+    H, W = arr.shape[:2]
     w = round(H * 5 / 3); h = H; y0 = 0
     if w > W: w = W; h = round(W * 3 / 5); y0 = (H - h) // 2
     x0 = (W - w) // 2
