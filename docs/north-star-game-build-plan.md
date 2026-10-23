@@ -116,6 +116,8 @@ The arcade is the **Do Better Arcade**: every Miles Low game in one place. It al
 - Players who signed in before the sheet existed are recovered the next time they open the game.
 - Tracked per player: visits, minutes played, furthest level, ending, prize.
 
+**The Do Better Arcade on the same sheet (Oct 23):** an Arcade tab with one row per player per game (North Star, Need A Ride?, HOUSE RULES): first seen, name, email, visits, minutes played, progress, last seen. HOUSE RULES now asks for an email to play, like Need A Ride?. Both games send through North Star's `/api/arcade`, keep each update on the phone until the sheet confirms it, and Need A Ride?'s existing players were copied over once with `need-a-ride.vercel.app/api/sheet-sync`.
+
 **Added with HQ:**
 - Chapter 2 progress
 - Outfits unlocked
