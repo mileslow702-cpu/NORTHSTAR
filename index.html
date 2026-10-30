@@ -451,7 +451,8 @@ readOutfit();
 // North Star HQ opens once they beat Chapter 1. Players who beat it before HQ existed already have a best run or a Society card saved.
 const HQ_KEY = 'ns-hq-v1';
 function hqOpen() { try { return !!(localStorage.getItem(HQ_KEY) || localStorage.getItem('ns-best-v1') || localStorage.getItem('ns-society-v1')); } catch (e) { return false; } }
-const CH = WANT_CH > 1 && hqOpen() ? WANT_CH : 1;   // which chapter this visit plays
+const PREVIEW = location.hostname !== 'northstargame.vercel.app';   // test builds open every chapter
+const CH = WANT_CH > 1 && (hqOpen() || PREVIEW) ? WANT_CH : 1;   // which chapter this visit plays
 const CH2_KEY = 'ns-ch2-v1', CH3_KEY = 'ns-ch3-v1';
 function unlockHQ() { try { if (!localStorage.getItem(HQ_KEY)) localStorage.setItem(HQ_KEY, JSON.stringify({ at: new Date().toISOString() })); } catch (e) {} }
 let walletAdd = 0;   // coins picked up this run, banked for the HQ (outfits, Daily Spin)
