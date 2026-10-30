@@ -1,8 +1,8 @@
 # NORTH STAR: Brightest in the Skyline — Full Game Plan
 
-*Build once: the whole game mapped out, so every piece fits the next. Last updated Oct 22, 2026.*
+*Build once: the whole game mapped out, so every piece fits the next. Last updated Oct 30, 2026.*
 
-**Release rule:** North Star HQ went live Oct 22, 2026, and Chapter 2 · THE UNDERGROUND went live Oct 23. Chapters 3–4 get built on the `expansion` branch and private previews, and each one goes live when it's finished.
+**Release rule:** North Star HQ went live Oct 22, 2026, and Chapter 2 · THE UNDERGROUND went live Oct 23. Chapter 3 · THE BOT FARMS is built on the `expansion` preview (Oct 30) and goes live when Miles says. Chapter 4 follows the same way.
 
 ---
 
@@ -65,9 +65,22 @@ The trail behind the stolen masters goes deeper with every chapter: out of the s
 - **Boss: THE CURATOR.** He runs the blogs and gossip sites and thinks he controls the narrative, but he never comes outside. He hides behind a wall of monitors firing hate comments as projectiles. Light is his weakness: knock out his screens and drag him into the light.
 
 ### Chapter 3 · THE BOT FARMS
-- **Levels:** Miles leaves Vegas and travels city to city, shutting down a bot farm in each one: rooms of phones and server racks pumping fake streams and fake hate. Cities: **Los Angeles → Houston → Atlanta → New York**. Then the trail leads into **the Machine World**, the digital world all the farms feed.
-- **Enemies:** bot accounts that multiply when you ignore them, phone-rack turrets, spam drones.
-- **Boss: THE BOT FATHER.** He runs every farm from inside the Machine World. A huge swarm boss: hit him and he splits into smaller bots that rebuild him unless you clear them fast.
+**Built on the preview (Oct 30), not live yet.** Opens from the HQ elevator once Chapter 2 is beaten.
+
+- **Story:** North Star is out and Northtown throws a block party. The Bot Father's bots, trolls, clones and bloggers crash it. A fan named **Trinity**, who used to work for the bot farms, rides with Miles to LA and helps him find all four. She stays in LA (it's home) and talks to him on comms from then on.
+- **Levels:**
+  1. **The Block Party** (Northtown): fight through to the lowrider.
+  2. **The I-15** to LA, a driving level: up/down change lanes, jump hops the hydraulics over potholes and rocks, right is gas, left is brake. Drones lock onto a lane, and the highway signs count down from LOS ANGELES 270 MI to NOW ENTERING LOS ANGELES (desert, then Cajon Pass, then LA).
+  3. **Leimert Park** (LA farm): phone racks keep printing new bots until you jump on them.
+  4. **Third Ward** (Houston farm): the farm runs chopped and screwed. Purple zones slow everything down, the music included.
+  5. **Sweet Auburn** (Atlanta farm): spam drones follow you overhead; jump on them.
+  6. **JFK Airport**: top-down stealth. Stay out of the guards' light, hide between the seats, and get to the exit.
+  7. **The NYC Tunnels**: rats, Pizza Rat, and a sewer gator in a fitted cap that runs off (Trinity: "WTF WAS THAT?!").
+  8. **Machine World**: the ladder climb, dodging phones. One stomp and the Bot Father runs for his throne.
+  9. **THE BOT FATHER**: stomp him and he splits into mini bots. Every piece you stomp is gone for good, and the rest rebuild him. Nine pieces finish him.
+- **Ending:** a red star opens above the Machine World. ALGOL, the Demon Star, is watching, which leads into Chapter 4.
+- **Music:** the same songs as Chapters 1–2.
+- **Sheet:** Chapter 3 levels count as 11–19, with a new ending, 'Beat Chapter 3'. The sheet script already knows it, so paste the current script when you deploy v6.
 
 ### Chapter 4 · THE COSMIC WAR
 - **World:** Miles levels up and goes to space for a cosmic war, dripped and draped in cosmic Afrofuturism: gold-trimmed armor, star-map robes, ships shaped like crowns and pyramids, constellations as platforms.
@@ -167,12 +180,11 @@ Work through it in this order: each batch unlocks the next piece of building. Hi
 - [x] Music: Chapter 2 plays the same songs as Chapter 1 (Miles's call)
 
 ### Batch 4: Chapter 3 · THE BOT FARMS
-- [ ] Backgrounds: a bot farm in each city + the Machine World (5 images)
-- [ ] Enemies: bot accounts, phone-rack turrets, spam drones (1 sheet)
-- [ ] THE BOT FATHER boss: full form, split into smaller bots, defeated (1 sheet)
-- [ ] Story scenes (about 4 images)
-- [ ] Rap Battle: stage background + battle opponents (2 images)
-- [ ] Music: level beats, boss beat, Rap Battle beat (3–4 beats)
+- [x] Backgrounds: block party, the drive (desert, Cajon Pass, LA), farms in LA / Houston / Atlanta, JFK, NYC tunnels, the Machine World, the throne (generated Oct 30; the NYC sign was fixed to read NYC)
+- [x] Sprites: lowrider with Trinity, road obstacles, spam drone, bot account, phone rack, airport guard, Pizza Rat + sewer gator, THE BOT FATHER, Trinity's comms faces
+- [x] Story scenes: the block party and lowrider from the 500 Degrees video, Trinity's map, the plane call, the Bot Father's fall, the fans in four cities
+- [ ] Rap Battle: stage background + battle opponents (2 images): later
+- [x] Music: Chapter 3 plays the same songs (Miles's call)
 
 ### Batch 5: Chapter 4 · THE COSMIC WAR
 - [ ] Backgrounds: cosmic Afrofuturist space world, the constellation field, ALGOL's eclipse arena (3 images)
