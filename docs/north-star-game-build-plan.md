@@ -2,7 +2,7 @@
 
 *Build once: the whole game mapped out, so every piece fits the next. Last updated Oct 30, 2026.*
 
-**Release rule:** North Star HQ went live Oct 22, 2026, and Chapter 2 · THE UNDERGROUND went live Oct 23. Chapter 3 · THE BOT FARMS is built on the `expansion` preview (Oct 30) and goes live when Miles says. Chapter 4 follows the same way.
+**Release rule:** North Star HQ went live Oct 22, 2026, and Chapter 2 · THE UNDERGROUND went live Oct 23. Chapter 3 · THE BOT FARMS went live Oct 30. Chapter 4 gets built on the `expansion` preview and goes live when Miles says.
 
 ---
 
@@ -65,7 +65,7 @@ The trail behind the stolen masters goes deeper with every chapter: out of the s
 - **Boss: THE CURATOR.** He runs the blogs and gossip sites and thinks he controls the narrative, but he never comes outside. He hides behind a wall of monitors firing hate comments as projectiles. Light is his weakness: knock out his screens and drag him into the light.
 
 ### Chapter 3 · THE BOT FARMS
-**Built on the preview (Oct 30), not live yet.** Opens from the HQ elevator once Chapter 2 is beaten.
+**Live (Oct 30).** Opens from the HQ elevator once Chapter 2 is beaten.
 
 - **Story:** North Star is out and Northtown throws a block party. The Bot Father's bots, trolls, clones and bloggers crash it. A fan named **Trinity**, who used to work for the bot farms, rides with Miles to LA and helps him find all four. She stays in LA (it's home) and talks to him on comms from then on.
 - **Levels:**
