@@ -320,9 +320,11 @@ function useThing(o) {
   if (o.id === 'elevator') {
     openPanel('<h2>ELEVATOR</h2><p class="sub">Pick a floor. New chapters open here as they drop.</p><ul class="rows">' +
       `<li><span>CHAPTER 1 · THE BREAKOUT<small>${LEVELS.join(' · ')}</small></span><a class="btn" href="${GAME_URL}">PLAY</a></li>` +
-      CHAPTERS.map(([n, d], i) => i === 0   // Chapter 2 is playable; 3 and 4 are on the way
+      CHAPTERS.map(([n, d], i) => i === 0   // Chapter 2 is playable; Chapter 3 opens once Chapter 2 is beaten; 4 is on the way
         ? `<li><span>${n}<small>${d}</small></span><a class="btn" href="${GAME_URL}?ch=2">${store.get('ns-ch2-v1', null) ? 'REPLAY' : 'PLAY'}</a></li>`
-        : `<li class="lock"><span>${n}<small>${d}</small></span><span class="btn ghost">SOON</span></li>`).join('') +
+        : i === 1 && store.get('ns-ch2-v1', null)
+        ? `<li><span>${n}<small>${d}</small></span><a class="btn" href="${GAME_URL}?ch=3">${store.get('ns-ch3-v1', null) ? 'REPLAY' : 'PLAY'}</a></li>`
+        : `<li class="lock"><span>${n}<small>${d}</small></span><span class="btn ghost">${i === 1 ? 'BEAT CH. 2' : 'SOON'}</span></li>`).join('') +
       `<li><span>MAIN MENU<small>Back to the title screen</small></span><a class="btn ghost" href="${GAME_URL}">GO</a></li></ul>`);
   } else if (o.id === 'jukebox') {
     const row = (s, i) => `<li><span>${s.title}${s.credit ? '<small>' + s.credit + '</small>' : ''}</span><button class="btn" data-song="${i}">${jukeIdx === i && jukeAudio && !jukeAudio.paused ? 'PAUSE' : 'PLAY'}</button></li>`;
