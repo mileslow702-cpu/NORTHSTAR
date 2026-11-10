@@ -117,6 +117,12 @@ const VIDEOS = [   // YouTube
   { id: 'pIt_MtMWGkc', title: 'Las Vegas Shade 45 Cypher', sub: 'Punch Line Academy freestyle' },
   { id: 'xn-gWWTgbrw', title: 'Unexpected: Up Next', sub: 'Miles Low' },
   { id: 'SbrYtrhsqqU', title: '5th Element Hip Hop Show', sub: 'Miles Low x Vic Smith' },
+  { id: 'H2PzPzFvvhA', title: '500 Degrees', sub: 'Official music video' },
+  { id: 'YTAT80hSyKs', title: 'Blame The Weatherman', sub: 'Music video' },
+  { id: 'uQrE6gLP6gs', title: 'N.X.N.W.', sub: 'Official music video' },
+  { id: '8u76RcXZioE', title: 'Energy', sub: 'Official video' },
+  { id: '2ePv00EwLWc', title: 'Blacc Sam', sub: 'Lyric video' },
+  { id: 'f0XZyrOpG0Y', title: 'Suitcase', sub: 'Live from Las Vegas, Oct 2025' },
 ];
 const CARD_VIDEO = MP4 ? 'images/society-card.mp4' : 'images/society-card.webm';
 const CREW = [
@@ -168,6 +174,7 @@ const spinImg = new Image(), ptrImg = new Image(); spinImg.src = 'images/spin-ma
 const DBA_GAMES = [
   ['NEED A RIDE?', 'Rideshare driving across South LA', 'https://need-a-ride.vercel.app'],
   ['HOUSE RULES', 'Fly above a futuristic Las Vegas', 'https://house-rules-five.vercel.app'],
+  ['LOW VISIBILITY', 'Shoot and hide in the fog: a Miles Low FPS', 'https://foggame.vercel.app'],
 ];
 const GAME_URL = 'index.html';   // the game: the elevator and MAIN MENU go here
 const LEVELS = ['THE STUDIO', 'DOWNTOWN', 'HISTORIC WESTSIDE', 'THE STRIP', 'THE PENTHOUSE'];
@@ -486,7 +493,7 @@ function drawScreen(q, i) {   // the TV video, fitted into one screen of the art
     ctx.globalAlpha = 0.35; const cs = Math.max(w / vw, h / vh); ctx.drawImage(tv, x + (w - vw * cs) / 2, y + (h - vh * cs) / 2, vw * cs, vh * cs); ctx.globalAlpha = 1;   // dim fill behind a phone-shaped video
     const fs = Math.min(w / vw, h / vh); ctx.drawImage(tv, x + (w - vw * fs) / 2, y + (h - vh * fs) / 2, vw * fs, vh * fs);
   } else {
-    const im = FRAMES[i % FRAMES.length][Math.floor(t / 2.6 + i * 1.3) % 4];
+    const im = FRAMES[(i + 3 * Math.floor(t / 10.4)) % FRAMES.length][Math.floor(t / 2.6 + i * 1.3) % 4];   // each screen moves on to the next video every 10 seconds
     if (im.complete && im.naturalWidth > 0) { const sh = im.naturalWidth * h / w; ctx.drawImage(im, 0, (im.naturalHeight - sh) / 2, im.naturalWidth, sh, x, y, w, h); }
   }
   rect('rgba(0,0,0,.16)', x, y + ((t * 14 + i * 9) % h), w, 0.5);   // scanline roll
@@ -536,7 +543,7 @@ function drawThing(o) {
     for (let i = 0; i < 3; i++) {
       const x = b.x + 2 + i * 47, y = b.y + 6, w = 42, h = 22;
       rect('#000', x - 2, y - 2, w + 4, h + 4);
-      const im = FRAMES[i][Math.floor(t / 2.6 + i * 1.3) % 4], k = (t / 2.6 + i * 1.3) % 1;   // a new frame every few seconds, slowly drifting
+      const im = FRAMES[(i + 3 * Math.floor(t / 10.4)) % FRAMES.length][Math.floor(t / 2.6 + i * 1.3) % 4], k = (t / 2.6 + i * 1.3) % 1;   // a new frame every few seconds, slowly drifting
       if (tv.readyState >= 2) { const vw = tv.videoWidth, vh = tv.videoHeight, sh = Math.min(vh, vw * h / w), sw = sh * w / h; ctx.drawImage(tv, (vw - sw) / 2, (vh - sh) / 2, sw, sh, x, y, w, h); }
       else if (im.complete && im.naturalWidth > 0) { const sw = im.naturalWidth * 0.86, sh = sw * h / w; ctx.drawImage(im, (im.naturalWidth - sw) * k, (im.naturalHeight - sh) / 2, sw, sh, x, y, w, h); }
       else rect('#1d3fbf', x, y, w, h);
